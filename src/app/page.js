@@ -1,8 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import { useContext, useEffect, useState } from "react";
 import NFTMarketplaceContext from "../../Context/NFTMarketplaceContext";
+import CollectionContainer from "../components/home-page/CollectionContainer";
+import HeroSection from "../components/home-page/HeroSection";
+import MoreNFTContainer from "../components/home-page/MoreNFTContainer";
+import IntroContainer from "../components/home-page/IntroContainer";
+
 
 export default function Home() {
   const [count, setCount] = useState(0);
@@ -13,28 +17,11 @@ export default function Home() {
   }, []); // Chạy mỗi khi helloWorld thay đổi
 
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <h1>Hello</h1>
-      <button
-        onClick={() => {
-          createNFT(
-            "NFT NAME",
-            "NFT DESCRIPTION",
-            0.1,
-            "https://blue-wonderful-antelope-164.mypinata.cloud/ipfs/bafkreicjk7vnvndjfdy4bbkqlphzi4juyxxswbszu77ak2pv2edwlgcnby"
-          )
-        }}
-      >
-        create NFT
-      </button>
-      <button onClick={() => {
-        fetchNFTs().then((res) => {
-          console.log(res);
-        }
-        );
-      }}>
-        fetchNFTs
-      </button>
+    <div className="bg-[#2b2b2b] flex flex-col  justify-center min-h-screen">
+      <HeroSection />
+      <CollectionContainer />
+      <MoreNFTContainer />
+      <IntroContainer />
     </div>
   );
 }

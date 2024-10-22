@@ -1,7 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   crossOrigin: "anonymous",
+  images: {
+    domains: ["scontent.fsgn19-1.fna.fbcdn.net", "cdn.animaapp.com"],
+    remotePatterns: [
+      {
+        hostname: "pqxhavcshlsgvyjmkhkv.supabase.co",
+      },
 
+      {
+        hostname: "pqxhavcshlsgvyjmkhkv.supabase.co",
+      },
+    ],
+  },
   async rewrites() {
     return [
       {

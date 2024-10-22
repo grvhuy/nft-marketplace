@@ -5,8 +5,8 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "hardhat/console.sol";
 
 contract NFTMarketplace is ERC721URIStorage {
-    uint256 private _tokenIds; // Replaces Counters.Counter for token IDs
-    uint256 private _itemsSold; // Replaces Counters.Counter for items sold
+    uint256 private _tokenIds; 
+    uint256 private _itemsSold; 
 
     uint256 listingPrice = 0.0025 ether;
     address payable owner;
@@ -31,7 +31,6 @@ contract NFTMarketplace is ERC721URIStorage {
 
     modifier onlyOwner {
         require(msg.sender == owner, "only owner of the marketplace can change listing price");
-        // if true then continue
         _;
     }
 
@@ -40,7 +39,6 @@ contract NFTMarketplace is ERC721URIStorage {
         owner = payable(msg.sender);
     }
 
-    /* Updates the listing price of the contract */
     function updateListingPrice(uint256 _listingPrice) public payable onlyOwner {
         require(owner == msg.sender, "Only marketplace owner can update listing price.");
         listingPrice = _listingPrice;
@@ -56,7 +54,7 @@ contract NFTMarketplace is ERC721URIStorage {
 
     /* Mints a token and lists it in the marketplace */
     function createToken(string memory tokenURI, uint256 price) public payable returns (uint256) {
-        _tokenIds++; // Increment the token ID counter manually
+        _tokenIds++; 
         uint256 newTokenId = _tokenIds;
 
         _mint(msg.sender, newTokenId);
@@ -81,7 +79,6 @@ contract NFTMarketplace is ERC721URIStorage {
         emit MarketItemCreated(tokenId, msg.sender, address(this), price, false);
     }
 
-    /* Allows someone to resell a token they have purchased */
     function resellToken(uint256 tokenId, uint256 price) public payable {
         require(idToMarketItem[tokenId].owner == msg.sender, "Only item owner can perform this operation");
         require(msg.value == listingPrice, "Price must be equal to listing price");

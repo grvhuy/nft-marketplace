@@ -4,7 +4,8 @@ import { useContext, useState } from "react";
 import NFTMarketplaceContext from "../../../../Context/NFTMarketplaceContext";
 
 export default function Home() {
-  const { uploadFile } = useContext(NFTMarketplaceContext);
+  const { createNFT, fetchNFTs } = useContext(NFTMarketplaceContext);
+
   const [file, setFile] = useState();
   const [url, setUrl] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -14,13 +15,29 @@ export default function Home() {
   };
 
   return (
-		<main className="w-full min-h-screen m-auto flex flex-col justify-center items-center">
-			<input type="file" onChange={handleChange} />
-			<button disabled={uploading} onClick={() => uploadFile(file)}>
-				{uploading ? "Uploading..." : "Upload"}
-			</button>
-			{/* Add a conditional looking for the signed url and use it as the source */}
-			{url && <img src={url} alt="Image from Pinata" />}
-		</main>
+    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <h1>Hello</h1>
+      <button
+        onClick={() => {
+          createNFT(
+            "NFT NAME",
+            "NFT DESCRIPTION",
+            0.1,
+            "https://blue-wonderful-antelope-164.mypinata.cloud/ipfs/bafkreicjk7vnvndjfdy4bbkqlphzi4juyxxswbszu77ak2pv2edwlgcnby"
+          );
+        }}
+      >
+        create NFT
+      </button>
+      <button
+        onClick={() => {
+          fetchNFTs().then((res) => {
+            console.log(res);
+          });
+        }}
+      >
+        fetchNFTs
+      </button>
+    </div>
   );
 }
