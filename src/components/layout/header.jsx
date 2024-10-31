@@ -1,13 +1,28 @@
+"use client";
+import React, { useEffect } from "react";
+import Link from "next/link";
+import NFTMarketplaceContext from "../../../Context/NFTMarketplaceContext";
+
 const Header = () => {
+  const { connectWallet, currentAccount, showCurrentAccount } = React.useContext(
+    NFTMarketplaceContext
+  );
+
+  useEffect(() => {
+    console.log("currentAccount", currentAccount);
+  }, [currentAccount])
+
+  const handleClick = () => {};
+
   return (
     <header className="flex shadow-md py-4 px-4 sm:px-10 bg-primary font-[sans-serif] min-h-[70px] tracking-wide relative z-50">
       <div className="flex flex-wrap items-center justify-between gap-5 w-full">
         <a href="#">
-          {/* <img
-            src="https://readymadeui.com/readymadeui.svg"
+          <img
+            src="/images/wallet.webp"
             alt="logo"
-            className="w-36"
-          /> */}
+            className="w-12"
+          />
         </a>
 
         <div
@@ -78,14 +93,14 @@ const Header = () => {
                 Authors
               </a>
             </li>
-            <li className="max-lg:border-b border-gray-300 max-lg:py-3 px-3">
+            {/* <li className="max-lg:border-b border-gray-300 max-lg:py-3 px-3">
               <a
                 href="/account"
                 className="hover:text-[#007bff] text-gray-500 block font-semibold text-[15px]"
               >
                 Account settings
               </a>
-            </li>
+            </li> */}
             <li className="max-lg:border-b border-gray-300 max-lg:py-3 px-3">
               <a
                 href="/connectWallet"
@@ -98,17 +113,28 @@ const Header = () => {
         </div>
 
         <div className="flex max-lg:ml-auto space-x-3">
-          <button className="px-4 py-2 text-sm rounded-sm font-bold text-white  bg-[#a259ff] transition-all ease-in-out duration-300 hover:bg-transparent hover:text-[#007bff]">
-            Login
-          </button>
-          <button className="px-4 py-2 text-sm rounded-sm font-bold text-white  bg-[#a259ff] transition-all ease-in-out duration-300 hover:bg-transparent hover:text-[#007bff]">
-            Sign up
-          </button>
+          {currentAccount === "" ? (
+            <button
+              onClick={connectWallet}
+              className="px-4 py-2 text-sm rounded-sm font-bold text-white  bg-[#a259ff] transition-all ease-in-out duration-300 hover:bg-transparent hover:text-[#007bff]"
+            >
+              Connect
+            </button>
+          ) : (
+            <a href="/upload">
+              <button
+                onClick={handleClick}
+                className="px-4 py-2 text-sm rounded-sm font-bold text-white  bg-[#a259ff] transition-all ease-in-out duration-300 hover:bg-transparent hover:text-[#007bff]"
+              >
+                Create
+              </button>
+            </a>
+          )}
 
           <button id="toggleOpen" className="lg:hidden">
             <svg
               className="w-7 h-7"
-              fill="#000"
+              fill="white"
               viewBox="0 0 20 20"
               xmlns="http://www.w3.org/2000/svg"
             >

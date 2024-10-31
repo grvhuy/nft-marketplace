@@ -1,33 +1,34 @@
+import Image from "next/image";
 import React from "react";
 
 const testURL =
   "https://scontent.fsgn19-1.fna.fbcdn.net/v/t1.15752-9/462534232_1052853119969676_1093995911813386268_n.png?_nc_cat=107&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeEl1Qfs58HCWe2vceHG4g-mPXxybZtGEkQ9fHJtm0YSRGKSih6lL5jXoclQU3lkdGSA1Hn845yjjv6oQRBI2Fc2&_nc_ohc=4EbyBoIIdFAQ7kNvgEi68R7&_nc_ht=scontent.fsgn19-1.fna&_nc_gid=AhB9PvgR8Gn3nVDNfCJZGg6&oh=03_Q7cD1QF0WIPIJ7_PmHR1xjGbVTmY2m5MUe9rl4xca8bcUNvQhw&oe=67300766";
 
-const NFTCard = ({ image, name, bid, timeLeft, likes }) => {
+const NFTCard = ({ image, name, timeLeft, price }) => {
   return (
-    <div className="bg-white rounded-lg shadow-lg p-4 w-64 mt-4">
+    <div className="bg-white rounded-lg shadow-lg p-4 w-64 mt-4 transform transition-transform duration-200 hover:scale-95 cursor-pointer">
       <div className="relative">
         <img
-          src={testURL}
+          src={image}
           alt={name}
           className="w-full h-48 object-cover rounded-lg"
         />
         <div className="absolute top-2 left-2 bg-white p-1 rounded-full">
-          <img src="path/to/icon.png" alt="icon" className="w-4 h-4" />
+          <Image src={image} alt="icon" className="w-4 h-4" fill sizes="100vw" />
         </div>
-        <div className="absolute top-2 right-2 bg-white p-1 rounded-full">
-          <span className="text-sm">{likes} ❤️</span>
-        </div>
+        {/* <div className="absolute top-2 right-2 bg-white p-1 rounded-full">
+          <span className="text-sm"> ❤️</span>
+        </div> */}
       </div>
       <div className="mt-4">
         <h3 className="text-lg font-semibold mt-2">{name}</h3>
         <div className="flex justify-between items-center mt-2">
-          <div>
-            <p className="block text-lg font-bold border-[1.5px] border-gray-400 p-2 pt-5 relative">
-              <span className="bg-gray-600 text-white p-1 rounded-sm block text-sm absolute -top-2">
+          <div className="mt-4 w-1/2">
+            <p className="text-lg border-[1.5px] border-gray-400 p-2 relative items-center justify-center flex">
+              <span className="bg-[#ac8be0] text-white p-1 rounded-sm block text-sm absolute -top-5">
                 Current Bid
               </span>
-              <b className="pt-4">{bid} ETH</b>
+              <b className="">{price} ETH</b>
             </p>
           </div>
           <div className="text-sm text-gray-500">{timeLeft} left</div>
@@ -37,7 +38,7 @@ const NFTCard = ({ image, name, bid, timeLeft, likes }) => {
   );
 };
 
-const AuthorCollection = () => {
+const AuthorCollection = (props) => {
   const nfts = [
     {
       image: "path/to/image1.jpg",
@@ -115,7 +116,7 @@ const AuthorCollection = () => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 overflow-x-auto p-4">
-      {nfts.map((nft, index) => (
+      {props.nfts.map((nft, index) => (
         <NFTCard key={index} {...nft} />
       ))}
     </div>

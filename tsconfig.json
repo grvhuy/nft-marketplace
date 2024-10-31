@@ -30,7 +30,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
-, "src/components/layout/footer.js", "src/components/layout/header.js", "src/components/home-page/HeroSection.jsx", "src/components/home-page/IntroContainer.jsx"  ],
+, "src/components/layout/footer.js", "src/components/layout/header.js", "src/components/home-page/HeroSection.jsx", "src/components/home-page/IntroContainer.jsx", "src/app/(guest)/assets/resell/[tokenId]/page.jsx"  ],
   "exclude": [
     "node_modules"
   ]

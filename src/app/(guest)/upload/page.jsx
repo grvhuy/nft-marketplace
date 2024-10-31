@@ -1,8 +1,18 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { useDropzone } from "react-dropzone";
+import MyButton from "@/components/custom/MyButton";
+import React, { useState, useEffect, useCallback } from "react";
+import Dropzone, { useDropzone } from "react-dropzone";
+import NFTMarketplaceContext from "../../../../Context/NFTMarketplaceContext";
+import { useRouter } from "next/navigation";
+import Spinner from "@/components/Spinner";
 
 const UploadNFT = () => {
+  const router = useRouter();
+
+
+
+  const { uploadFile, createNFT, currentAccount } = React.useContext(NFTMarketplaceContext);
+
   const [formData, setFormData] = useState({
     itemName: "",
     description: "",
@@ -10,9 +20,13 @@ const UploadNFT = () => {
     properties: "",
     collection: "",
     image: null,
+    price: "",
   });
+  // const [fileURL, setFileURL] = useState(null);
 
-  const [previewImage, setPreviewImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState(
+    "https://placehold.co/600x400?text=Preview+Image"
+  );
 
   const collections = [
     { id: 1, name: "Arts" },
@@ -23,16 +37,26 @@ const UploadNFT = () => {
   ];
 
   const [activeCollection, setActiveCollection] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const onDrop = (acceptedFiles) => {
-    const file = acceptedFiles[0];
-    setPreviewImage(URL.createObjectURL(file));
-    setFormData({ ...formData, image: file });
-  };
+  const onDrop = useCallback(async (acceptedFiles, rejectedFiles) => {
+    setLoading(true);
+    if (rejectedFiles.length > 0) {
+      console.error("Rejected files:", rejectedFiles);
+      return; // Optionally handle rejected files
+    }
+
+    const url = await uploadFile(acceptedFiles[0]);
+    setFormData({ ...formData, image: url });
+    setPreviewImage(url);
+    setLoading(false);
+  });
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
-    accept: "image/*",
+    accept: {
+      "image/*": [], // Allows all image types
+    },
   });
 
   const handleChange = (e) => {
@@ -66,45 +90,67 @@ const UploadNFT = () => {
         })}
       >
         <input {...getInputProps()} />
-        {/* {previewImage ? (
-          <img
-            src={previewImage}
-            alt="NFT Preview"
-            className="w-full h-96 object-cover rounded-lg"
-          />
-        ) :  */}
         <p className="text-gray-500">
           Drag & drop an image here, or click to select one
         </p>
       </div>
 
       {/* Dynamic View */}
-      <div className="mt-8 p-4 mb-8 rounded-lg border-2 border-dashed border-gray-300">
-        <div className="mt-2 grid grid-cols-1 lg:grid-cols-2">
-          <img
-            src={previewImage}
-            alt="Preview"
-            className="w-full h-full aspect-square object-cover rounded-lg "
-          />
 
-          <div className="flex flex-col ml-4 justify-between">
-            <p className="text-white font-bold text-lg">
-              <span className=" text-white font-sans font-light">NFT Name</span> &nbsp; {formData.itemName}
-            </p>
-            <p className="text-white font-bold text-lg ">
-              <span className=" text-white font-sans font-light">Description</span> &nbsp; {formData.description}
-            </p>
-            <p className="text-white font-bold text-lg ">
-              <span className=" text-white font-sans font-light">Royalties</span> &nbsp; {formData.royalties}
-            </p>
-            <p className="text-white font-bold text-lg ">
-              <span className=" text-white font-sans font-light">Properties</span> &nbsp; {formData.properties}
-            </p>
-            <p className="text-white font-bold text-lg ">
-              <span className=" text-white font-sans font-light">Collection</span> &nbsp; {formData.collection}
+      <div className="mt-8 p-4 mb-8 rounded-lg border-2 border-dashed border-gray-300">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center min-h-96">
+            <Spinner />
+            <p className="text-white text-sm font-medium mt-2">
+              One second and you good to go ...
             </p>
           </div>
-        </div>
+        ) : (
+          <div className="mt-2 grid grid-cols-1 lg:grid-cols-2">
+            <img
+              src={previewImage}
+              alt="Preview"
+              className="w-full h-full aspect-square object-cover p-10"
+            />
+
+            <div className="flex flex-col ml-4 justify-evenly">
+              <p className="text-white font-bold text-lg">
+                <span className=" text-white font-sans font-light">
+                  NFT Name
+                </span>{" "}
+                &nbsp; {formData.itemName}
+              </p>
+              <p className="text-white font-bold text-lg ">
+                <span className=" text-white font-sans font-light">
+                  Description
+                </span>{" "}
+                &nbsp; {formData.description}
+              </p>
+              <p className="text-white font-bold text-lg ">
+                <span className=" text-white font-sans font-light">
+                  Royalties
+                </span>{" "}
+                &nbsp; {formData.royalties}
+              </p>
+              <p className="text-white font-bold text-lg ">
+                <span className=" text-white font-sans font-light">Price</span>{" "}
+                &nbsp; {formData.price}
+              </p>
+              <p className="text-white font-bold text-lg ">
+                <span className=" text-white font-sans font-light">
+                  Properties
+                </span>{" "}
+                &nbsp; {formData.properties}
+              </p>
+              <p className="text-white font-bold text-lg ">
+                <span className=" text-white font-sans font-light">
+                  Collection
+                </span>{" "}
+                &nbsp; {formData.collection}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Form Fields */}
@@ -143,6 +189,18 @@ const UploadNFT = () => {
             min="0"
           />
 
+          <label className="block text-white text-sm font-medium  mt-4">
+            Price
+          </label>
+          <input
+            type="number"
+            name="price"
+            value={formData.price}
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500"
+            min="0"
+          />
+
           <label className="block text-white text-sm font-medium mt-4">
             Properties
           </label>
@@ -169,6 +227,21 @@ const UploadNFT = () => {
             </option>
           ))}
         </select>
+      </div>
+      <div className="flex justify-between">
+        <div></div>
+        <MyButton
+          onClick={() => {
+            console.log(formData);
+            createNFT(
+              formData.itemName,
+              formData.description,
+              formData.price,
+              formData.image
+            )
+          }}
+          title="Upload"
+        />
       </div>
     </div>
   );

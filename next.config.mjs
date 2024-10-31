@@ -11,6 +11,9 @@ const nextConfig = {
       {
         hostname: "pqxhavcshlsgvyjmkhkv.supabase.co",
       },
+      {
+        hostname: "blue-wonderful-antelope-164.mypinata.cloud",
+      }
     ],
   },
   async rewrites() {
@@ -23,6 +26,7 @@ const nextConfig = {
         source: "/api/:path*",
         destination: "https://cblue-wonderful-antelope-164.mypinata.cloud/:path*",
       },
+
     ];
   },
 };
