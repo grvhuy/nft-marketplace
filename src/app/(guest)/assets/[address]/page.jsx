@@ -9,37 +9,61 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { convertToUSD } from "../../../../../utils/convert";
 
 import MyCollapsible from "../../../../components/MyCollapsible";
+import Timer from "../../../../components/Timer";
 
 import MyButton from "@/components/custom/MyButton";
 
-import { MoreHorizontalIcon } from "lucide-react";
+import { Copy, MoreHorizontalIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import NFTMarketplaceContext from "../../../../../Context/NFTMarketplaceContext";
 import Image from "next/image";
 import { nftmarketplaceaddress } from "../../../../../Context/constants";
+import Spinner from "@/components/Spinner";
+import Link from "next/link";
+import { ethers } from "ethers";
+import AuctionDialog from "../../../../components/AuctionDialog";
 
 const NFTDetailsPage = () => {
   const tokenId = usePathname().split("/").pop();
   const router = useRouter();
   const [nft, setNft] = useState(null);
+  const [auction, setAuction] = useState(null);
+  const [priceInEth, setPriceInEth] = useState(0);
 
-  const { fetchNFTById, currentAccount, buyNFT } = useContext(
-    NFTMarketplaceContext
-  );
+  const { fetchNFTById, currentAccount, buyNFT, fetchAuction, placeBid } =
+    useContext(NFTMarketplaceContext);
 
   useEffect(() => {
     fetchNFTById(tokenId).then((res) => {
       console.log(res);
       setNft(res);
     });
+    fetchAuction(tokenId).then((res) => {
+      if (res == null) return;
+      if (res) {
+        setAuction(res);
+        console.log(res);
+        setPriceInEth(
+          ethers.utils.formatEther(ethers.BigNumber.from(res.highestBid))
+        );
+        console.log(
+          ethers.utils.formatEther(ethers.BigNumber.from(res.highestBid))
+        );
+      }
+    });
   }, []);
 
+  useEffect(() => {}, []);
+
   return (
-    <div className="bg-[#2b2b2b] p-6 rounded-lg shadow-lg mx-20 text-white">
+    <div className="bg-[#2b2b2b] p-6 rounded-lg shadow-lg mx-20 min-h-screen text-white">
       {nft === null ? (
-        <p>Loading...</p>
+        <div className="flex items-center justify-center">
+          <Spinner />
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="relative">
@@ -52,6 +76,7 @@ const NFTDetailsPage = () => {
               src={nft.image}
               alt={nft.name}
               height={500}
+              priority
               width={500}
               className={`hover:shadow-sm aspect-square block rounded-md`}
             />
@@ -110,76 +135,116 @@ const NFTDetailsPage = () => {
                 </div>
               </div>
             </div>
-            <div className="mt-4">
-              <span className="block text-gray-400">Auction ending in:</span>
-              <div className="grid grid-cols-4 gap-2 mt-1">
-                <div className="text-center">
-                  <span className="block text-xl font-bold">2</span>
-                  <span className="text-sm text-gray-400">Days</span>
-                </div>
-                <div className="text-center">
-                  <span className="block text-xl font-bold">22</span>
-                  <span className="text-sm text-gray-400">Hours</span>
-                </div>
-                <div className="text-center">
-                  <span className="block text-xl font-bold">45</span>
-                  <span className="text-sm text-gray-400">Mins</span>
-                </div>
-                <div className="text-center">
-                  <span className="block text-xl font-bold">12</span>
-                  <span className="text-sm text-gray-400">Secs</span>
-                </div>
-              </div>
-            </div>
+            {auction && (
+              <Timer
+                endTimeHex={auction ? auction.endTime._hex : 0}
+                tokenId={tokenId}
+              />
+            )}
             <div className="mt-4">
               <div className="flex flex-col">
                 <span className="text-lg font-semibold">Current Bid</span>
                 <b className="text-2xl font-bold">
                   {nft.price} ETH{" "}
-                  <span className="text-sm text-gray-400">(≈ $)</span>
+                  <span className="text-sm text-gray-400">
+                    (≈ {convertToUSD(nft.price)} USD)
+                  </span>
                 </b>
               </div>
             </div>
+
             <div className="mt-4 flex space-x-2">
-              {currentAccount && currentAccount === nft.seller.toLowerCase() ? (
+              {auction === null ? (
+                // Render the "Buy NFT" or "You are the owner of this NFT" buttons if no auction is active
+                currentAccount &&
+                currentAccount === nft.seller.toLowerCase() ? (
+                  <button
+                    disabled
+                    className="max-w-60 bg-[#545455] p-6 font-bold mt-8 rounded-xl"
+                  >
+                    You are the owner of this NFT
+                  </button>
+                ) : (
+                  <MyButton
+                    onClick={() => {
+                      buyNFT(nft).then(() => {
+                        window.location.reload();
+                      });
+                    }}
+                    title="Buy NFT"
+                  />
+                )
+              ) : // Render the "Place Bid" or "Your NFT currently on Auction" buttons if an auction is active
+              currentAccount &&
+                currentAccount === auction.seller.toLowerCase() ? (
+                <button
+                  disabled
+                  className="bg-[#545455] p-6 font-bold mt-8 rounded-xl"
+                >
+                  Your NFT currently on Auction
+                </button>
+              ) : (
+                <>
+                  <AuctionDialog
+                    onClick={(price) => {
+                      placeBid(nft.tokenId, price).then(() => {
+                        window.location.reload();
+                      });
+                    }}
+                  />
+                </>
+              )}
+              {/* {auction === null && currentAccount &&
+              currentAccount === nft.seller.toLowerCase() ? (
                 <button
                   disabled
                   className="max-w-60 bg-[#545455] p-6 font-bold mt-8 rounded-xl "
                 >
                   You are the owner of this NFT
                 </button>
-              ) : currentAccount == nft.owner.toLowerCase() ? (
-                <MyButton onClick={
-                  () => {
-                    router.push(`/assets/resell/${nft.tokenId}`);
-                  }
-                } title="List On Marketplace" />
               ) : (
                 <MyButton
                   onClick={() => {
-                    buyNFT(nft).then(
-                      () => {
-                        window.location.reload();
-                      }
-                    )
+                    buyNFT(nft).then(() => {
+                      window.location.reload();
+                    });
                   }}
                   title="Buy NFT"
                 />
               )}
-              <MyButton title="Make Offer" />
+
+              {auction &&
+              currentAccount &&
+              currentAccount === auction.seller.toLowerCase() ? (
+                <button
+                  disabled
+                  className=" bg-[#545455] p-6 font-bold mt-8 rounded-xl "
+                >
+                  Your NFT currently on Auction
+                </button>
+              ) : (
+                <MyButton
+                  onClick={() => {
+                    placeBid(nft).then(() => {
+                      window.location.reload();
+                    });
+                  }}
+                  title="Place Bid"
+                />
+              )} */}
             </div>
+
             <div className="mt-6">
               <div className="flex space-x-4">
-                <button
-                  onClick={() => {}}
-                  className="bg-gray-700 text-white px-4 py-2 rounded-lg"
+                <Link
+                  target="_blank"
+                  href={`https://amoy.polygonscan.com/nft/${nftmarketplaceaddress}/${tokenId}`}
                 >
-                  Bid History
-                </button>
-                <button className="bg-gray-700 text-white px-4 py-2 rounded-lg">
-                  Provenance
-                </button>
-                <button className="bg-gray-700 text-white px-4 py-2 rounded-lg">
+                  <button className="bg-[#ac8be0] text-white font-semibold  px-4 py-2 opacity-80 rounded-lg transition-opacity duration-300 hover:opacity-100">
+                    Activities
+                  </button>
+                </Link>
+                <button className="bg-[#ac8be0] text-white  font-semibold px-4 py-2 opacity-80 rounded-lg transition-opacity duration-300 hover:opacity-100">
                   Owner
                 </button>
               </div>
@@ -191,12 +256,35 @@ const NFTDetailsPage = () => {
                       alt="User"
                       className="w-8 h-8 rounded-full"
                     /> */}
-                    <div>
-                      <span>Offer by $770</span>
-                      <div className="text-sm text-gray-400">
-                        June 14 - 4:12 PM
+                    {auction && (
+                      <div>
+                        <span>
+                          Offer by{" "}
+                          <span className="font-semibold text-blue-300">
+                            {auction.highestBidder ===
+                            "0x0000000000000000000000000000000000000000"
+                              ? "No offers yet"
+                              : (
+                                  <span 
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(auction.highestBidder);
+                                    }}
+                                  className="flex items-center">
+                                    {auction.highestBidder}
+                                    <Copy size={16} className="ml-2 cursor-pointer" />
+                                  </span>
+                              )}
+                          </span>{" "}
+                          <p className="font-semibold">
+                            {priceInEth} ETH (≈ {convertToUSD(priceInEth)} USD)
+                          </p>
+                          {/* {ethers.utils.parseEther(auction.highestBid).toString()} */}
+                        </span>
+                        <div className="text-sm text-gray-400">
+                          June 14 - 4:12 PM
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
                 {/* Repeat the above block for more offers */}

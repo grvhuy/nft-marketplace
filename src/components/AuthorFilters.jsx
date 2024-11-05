@@ -13,6 +13,7 @@ const AuthorFilters = () => {
     setSortOption(event.target.value);
   };
 
+  
   return (
     <div className="flex items-center justify-between p-4 space-x-4">
       <div className="flex space-x-2">

@@ -37,6 +37,7 @@ const SearchPage = () => {
         {nfts && nfts.map((nft) => (
           <SearchCard
             key={nft.tokenURI}
+            tokenId={nft.tokenId}
             image={nft.image}
             name={nft.name}
             price={nft.price}

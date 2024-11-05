@@ -1,12 +1,19 @@
+"use client";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 const testURL =
   "https://scontent.fsgn19-1.fna.fbcdn.net/v/t1.15752-9/462534232_1052853119969676_1093995911813386268_n.png?_nc_cat=107&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeEl1Qfs58HCWe2vceHG4g-mPXxybZtGEkQ9fHJtm0YSRGKSih6lL5jXoclQU3lkdGSA1Hn845yjjv6oQRBI2Fc2&_nc_ohc=4EbyBoIIdFAQ7kNvgEi68R7&_nc_ht=scontent.fsgn19-1.fna&_nc_gid=AhB9PvgR8Gn3nVDNfCJZGg6&oh=03_Q7cD1QF0WIPIJ7_PmHR1xjGbVTmY2m5MUe9rl4xca8bcUNvQhw&oe=67300766";
 
-const NFTCard = ({ image, name, timeLeft, price }) => {
+const NFTCard = ({tokenId, image, name, timeLeft, price }) => {
+
+  const router = useRouter();
+
   return (
-    <div className="bg-white rounded-lg shadow-lg p-4 w-64 mt-4 transform transition-transform duration-200 hover:scale-95 cursor-pointer">
+    <div onClick={
+      () => router.push(`assets/${tokenId}`)
+    } className="bg-white rounded-lg shadow-lg p-4 w-64 mt-4 transform transition-transform duration-200 hover:scale-95 cursor-pointer">
       <div className="relative">
         <img
           src={image}

@@ -1,8 +1,13 @@
+"use client"
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const SearchCard = (props) => {
+
+  const router = useRouter();
+
   return (
-    <div className="cursor-pointer transition-transform transform hover:scale-95 duration-300 w-72">
+    <div onClick={() => router.push(`/assets/${props.tokenId}`)} className="cursor-pointer transition-transform transform hover:scale-95 duration-300 w-72">
       <div className="min-w-1/3 mr-4 shadow-md bg-[#3b3b3b] opacity-90 hover:opacity-100 my-4 rounded-2xl">
         <Image
           src={props.image}

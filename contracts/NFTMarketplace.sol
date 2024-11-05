@@ -17,6 +17,7 @@ contract NFTMarketplace is ERC721URIStorage {
         uint256 tokenId;
         address payable seller;
         address payable owner;
+        address creator;
         uint256 price;
         bool sold;
     }
@@ -85,6 +86,7 @@ contract NFTMarketplace is ERC721URIStorage {
             tokenId,
             payable(msg.sender),
             payable(address(this)),
+            msg.sender,
             price,
             false
         );
@@ -144,7 +146,10 @@ contract NFTMarketplace is ERC721URIStorage {
     /* Returns all unsold market items */
     function fetchMarketItems() public view returns (MarketItem[] memory) {
         uint256 itemCount = _tokenIds;
-        uint256 unsoldItemCount = _tokenIds - _itemsSold;
+
+        uint256 unsoldItemCount = _itemsSold > _tokenIds
+            ? 0
+            : (_tokenIds - _itemsSold);
         uint256 currentIndex = 0;
 
         MarketItem[] memory items = new MarketItem[](unsoldItemCount);
@@ -286,90 +291,133 @@ contract NFTMarketplace is ERC721URIStorage {
     // AUCTION
     struct Auction {
         uint256 tokenId;
-        uint256 reservePrice;
         address payable seller;
         uint256 startingPrice;
         uint256 highestBid;
         address payable highestBidder;
         uint256 endTime;
-        bool ended;
+        bool active;
     }
 
-    mapping(uint256 => Auction) private tokenIdToAuction;
-    mapping(uint256 => bool) private activeAuctions; // Để theo dõi NFT nào đang trong đấu giá
+    mapping(uint256 => Auction) private idToAuction;
+
+    event AuctionCreated(
+        uint256 indexed tokenId,
+        address seller,
+        uint256 startingPrice,
+        uint256 endTime
+    );
+
+    event BidPlaced(uint256 indexed tokenId, address bidder, uint256 bidAmount);
+
+    event AuctionEnded(
+        uint256 indexed tokenId,
+        address winner,
+        uint256 winningBid
+    );
 
     function startAuction(
         uint256 tokenId,
         uint256 startingPrice,
-        uint256 reversePrice,
         uint256 duration
     ) public {
         require(
             idToMarketItem[tokenId].owner == msg.sender,
             "Only owner can start auction"
         );
+        require(idToMarketItem[tokenId].sold == true, "Item is already sold");
+
         require(
-            activeAuctions[tokenId] == false,
-            "Auction already active for this token"
-        );
+            !idToAuction[tokenId].active ||
+                block.timestamp >= idToAuction[tokenId].endTime,
+            "An active auction already exists for this item"
+        );  
 
-        // Chuyển NFT vào hợp đồng để giữ trong thời gian đấu giá
-        _transfer(msg.sender, address(this), tokenId);
-
-        tokenIdToAuction[tokenId] = Auction(
+        idToAuction[tokenId] = Auction(
             tokenId,
-            startingPrice,
             payable(msg.sender),
-            reversePrice, // Thiết lập giá mong muốn
+            startingPrice,
             0,
             payable(address(0)),
             block.timestamp + duration,
-            false
+            true
         );
 
-        activeAuctions[tokenId] = true;
+        _transfer(msg.sender, address(this), tokenId);
+        emit AuctionCreated(
+            tokenId,
+            msg.sender,
+            startingPrice,
+            block.timestamp + duration
+        );
     }
 
     function placeBid(uint256 tokenId) public payable {
-        Auction storage auction = tokenIdToAuction[tokenId];
-
-        require(block.timestamp < auction.endTime, "Auction already ended");
+        Auction storage auction = idToAuction[tokenId];
+        require(auction.active, "Auction ended");
+        require(block.timestamp < auction.endTime, "Auction expired");
         require(msg.value > auction.highestBid, "Bid amount too low");
-        require(activeAuctions[tokenId] == true, "Auction not active");
 
-        // Hoàn tiền cho người đặt giá cao trước đó
-        if (auction.highestBid > 0) {
+        if (auction.highestBidder != address(0)) {
             auction.highestBidder.transfer(auction.highestBid);
         }
 
         auction.highestBid = msg.value;
         auction.highestBidder = payable(msg.sender);
+
+        emit BidPlaced(tokenId, msg.sender, msg.value);
     }
 
     function endAuction(uint256 tokenId) public {
-        Auction storage auction = tokenIdToAuction[tokenId];
+        Auction storage auction = idToAuction[tokenId];
+        require(auction.active, "Auction ended or not exist");
+        require(block.timestamp >= auction.endTime, "Autction not yet ended");
+        auction.active = false;
 
-        require(block.timestamp >= auction.endTime, "Auction not yet ended");
-        require(auction.ended == false, "Auction already ended");
-        require(
-            auction.seller == msg.sender,
-            "Only seller can end the auction"
-        );
+        if (auction.highestBidder != address(0)) {
+            idToMarketItem[tokenId].owner = auction.highestBidder;
+            idToMarketItem[tokenId].sold = true;
+            _itemsSold++;
 
-        auction.ended = true;
-        activeAuctions[tokenId] = false;
-
-        if (
-            auction.highestBid >= auction.reservePrice
-        ) {
             _transfer(address(this), auction.highestBidder, tokenId);
             auction.seller.transfer(auction.highestBid);
+            emit AuctionEnded(
+                tokenId,
+                auction.highestBidder,
+                auction.highestBid
+            );
         } else {
- 
-            if (auction.highestBid > 0) {
-                auction.highestBidder.transfer(auction.highestBid);
-            }
             _transfer(address(this), auction.seller, tokenId);
         }
+    }
+
+    function fetchAuction(
+        uint256 tokenId
+    ) public view returns (Auction memory) {
+        Auction memory auction = idToAuction[tokenId];
+        require(auction.active, "Auction ended or not exist");
+        return auction;
+    }
+
+    function fetchActiveAuctions() public view returns (Auction[] memory) {
+        uint256 totalItemCount = _tokenIds;
+        uint256 activeAuctionCount = 0;
+        uint256 currentIndex = 0;
+
+        for (uint256 i = 1; i <= totalItemCount; i++) {
+            if (idToAuction[i].active) {
+                activeAuctionCount += 1;
+            }
+        }
+
+        Auction[] memory activeAuctions = new Auction[](activeAuctionCount);
+        for (uint256 i = 1; i <= totalItemCount; i++) {
+            if (idToAuction[i].active) {
+                Auction storage currentAuction = idToAuction[i];
+                activeAuctions[currentIndex] = currentAuction;
+                currentIndex += 1;
+            }
+        }
+        return activeAuctions;
     }
 }

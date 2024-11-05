@@ -6,6 +6,7 @@ import React, { useEffect } from "react";
 import Web3modal from "web3modal";
 import { nftmarketplaceABI, nftmarketplaceaddress } from "./constants";
 import { useRouter } from "next/navigation";
+import { convertToUSD } from "../utils/convert";
 
 const fetchContract = (providerOrSigner) =>
   new ethers.Contract(
@@ -30,12 +31,14 @@ const connectWithContract = async () => {
 export const NFTMarketplaceContext = React.createContext();
 
 export const NFTMarketplaceProvider = ({ children }) => {
+  const rpcJSONProviderString = `https://polygon-amoy.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_ID}`;
+  const localRPCProviderString = "http://localhost:8545";
   const router = useRouter();
   const titleData = "Discover NFTs world";
   const [currentAccount, setCurrentAccount] = React.useState("");
 
   useEffect(() => {
-    fetchNFTs();
+    // fetchNFTs();
     checkWalletConnection();
 
     if (window.ethereum) {
@@ -169,9 +172,9 @@ export const NFTMarketplaceProvider = ({ children }) => {
       const ipfsUrl = `https://blue-wonderful-antelope-164.mypinata.cloud/ipfs/${response.data.IpfsHash}`;
       await createSale(ipfsUrl, price);
 
-      if (response.data.IpfsHash) {
-        router.push("/");
-      }
+      // if (response.data.IpfsHash) {
+      //   router.push("/");
+      // }
     } catch (error) {
       console.error("Error during NFT creation:", error.message);
       alert(error);
@@ -194,7 +197,7 @@ export const NFTMarketplaceProvider = ({ children }) => {
       const listingPrice = await contract.getListingPrice();
 
       // Lấy nonce hiện tại
-      const signer = provider.getSigner(); 
+      const signer = provider.getSigner();
       const nonce = await provider.getTransactionCount(
         await signer.getAddress(),
         "latest"
@@ -242,7 +245,11 @@ export const NFTMarketplaceProvider = ({ children }) => {
 
   const fetchNFTs = async () => {
     try {
-      const provider = new ethers.providers.JsonRpcProvider();
+      const provider = new ethers.providers.JsonRpcProvider(
+        // localhost provider
+        // localRPCProviderString
+        rpcJSONProviderString
+      );
       const contract = fetchContract(provider);
       const data = await contract.fetchMarketItems();
 
@@ -344,16 +351,19 @@ export const NFTMarketplaceProvider = ({ children }) => {
 
   const fetchNFTsByIds = async (ids) => {
     try {
-      const provider = new ethers.providers.JsonRpcProvider();
+      const provider = new ethers.providers.JsonRpcProvider(
+
+        rpcJSONProviderString
+      );
       const contract = fetchContract(provider); // Ensure fetchContract returns the updated contract instance
       const data = await contract.fetchMarketItemsByIds(ids);
-  
+
       console.log("NFTs fetched:", data);
       const items = await Promise.all(
         data.map(
           async ({ tokenId, seller, owner, price: unformattedPrice }) => {
             const tokenURI = await contract.tokenURI(tokenId);
-  
+
             const {
               data: { name, description, image },
             } = await axios.get(tokenURI);
@@ -361,7 +371,7 @@ export const NFTMarketplaceProvider = ({ children }) => {
               unformattedPrice.toString(),
               "ether"
             );
-  
+
             return {
               tokenId: tokenId.toNumber(),
               seller,
@@ -383,7 +393,10 @@ export const NFTMarketplaceProvider = ({ children }) => {
 
   const fetchNFTById = async (id) => {
     try {
-      const provider = new ethers.providers.JsonRpcProvider();
+      const provider = new ethers.providers.JsonRpcProvider(
+
+        rpcJSONProviderString
+      );
       const contract = fetchContract(provider);
       const data = await contract.fetchMarketItemById(id);
 
@@ -393,7 +406,6 @@ export const NFTMarketplaceProvider = ({ children }) => {
         data: { name, description, image },
       } = await axios.get(tokenURI);
 
-
       const item = {
         tokenId: data.tokenId.toNumber(),
         seller: data.seller,
@@ -402,26 +414,31 @@ export const NFTMarketplaceProvider = ({ children }) => {
         name: name,
         description: description,
         image: image,
-        tokenURI:tokenURI,
-        data: data
+        tokenURI: tokenURI,
+        data: data,
       };
 
       return item;
     } catch (error) {
       console.error("Error during NFT fetching:", error);
     }
-  }
+  };
 
-  const startAuction = async (tokenId, reversePrice, startPrice, duration) => {
+  const startAuction = async (tokenId, startPrice, duration) => {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = fetchContract(signer);
 
-      const reversePriceInWei = ethers.utils.parseUnits(reversePrice.toString(), "ether");
-      const startPriceInWei = ethers.utils.parseUnits(startPrice.toString(), "ether");
+      // chuyen startPrice va duration tu string sang number
+      startPrice = ethers.utils.parseUnits(startPrice.toString(), "ether");
+      duration = parseInt(duration);
 
-      const transaction = await contract.startAuction(tokenId, reversePriceInWei, startPriceInWei, duration);
+      const transaction = await contract.startAuction(
+        tokenId,
+        startPrice,
+        duration
+      );
 
       const receipt = await transaction.wait();
 
@@ -433,15 +450,17 @@ export const NFTMarketplaceProvider = ({ children }) => {
     } catch (error) {
       console.error("Error during auction start:", error);
     }
-  }
+  };
 
-  const placeBid = async (tokenId) => {
+  const placeBid = async (tokenId, bidAmount) => {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = fetchContract(signer);
 
-      const transaction = await contract.placeBid(tokenId);
+      const transaction = await contract.placeBid(tokenId, {
+        value: ethers.utils.parseEther(bidAmount.toString()),
+      });
 
       const receipt = await transaction.wait();
 
@@ -450,10 +469,11 @@ export const NFTMarketplaceProvider = ({ children }) => {
       } else {
         alert("Transaction failed. Please try again.");
       }
-    } catch (error) {
-      console.error("Error during bid placement:", error);
+    } catch (e) {
+      console.error("Error during bid placing:", e);
+      alert(e.message || "Error during bid placing");
     }
-  }
+  };
 
   const endAuction = async (tokenId) => {
     try {
@@ -473,8 +493,39 @@ export const NFTMarketplaceProvider = ({ children }) => {
     } catch (error) {
       console.error("Error during auction end:", error);
     }
-  }
-  
+  };
+
+  const fetchAuction = async (tokenId) => {
+    try {
+      const provider = new ethers.providers.JsonRpcProvider();
+      rpcJSONProviderString
+      const contract = fetchContract(provider);
+      const data = await contract.fetchAuction(tokenId);
+
+      if (data === null) {
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Error during auction fetching:", error);
+    }
+  };
+
+  const fetchAllAuction = async () => {
+    try {
+      const provider = new ethers.providers.JsonRpcProvider(
+
+        rpcJSONProviderString
+      );
+      const contract = fetchContract(provider);
+      const data = await contract.fetchActiveAuctions();
+
+      return data;
+    } catch (error) {
+      console.error("Error during auction fetching:", error);
+    }
+  };
 
   return (
     <NFTMarketplaceContext.Provider
@@ -494,6 +545,8 @@ export const NFTMarketplaceProvider = ({ children }) => {
         startAuction,
         placeBid,
         endAuction,
+        fetchAuction,
+        fetchAllAuction,
       }}
     >
       {children}

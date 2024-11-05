@@ -240,7 +240,7 @@ const UploadNFT = () => {
               formData.image
             )
           }}
-          title="Upload"
+          title="Create and List"
         />
       </div>
     </div>
