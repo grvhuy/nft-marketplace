@@ -51,7 +51,6 @@ export default function AuctionDialog(props) {
               name="price"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              defaultValue="Pedro Duarte"
               className="col-span-3 bg-white dark:bg-gray-700 text-black dark:text-white border-gray-300 dark:border-gray-600 p-2 rounded-sm"
             />
           </div>

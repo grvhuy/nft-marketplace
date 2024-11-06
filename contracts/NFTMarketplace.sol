@@ -17,7 +17,6 @@ contract NFTMarketplace is ERC721URIStorage {
         uint256 tokenId;
         address payable seller;
         address payable owner;
-        address creator;
         uint256 price;
         bool sold;
     }
@@ -86,7 +85,6 @@ contract NFTMarketplace is ERC721URIStorage {
             tokenId,
             payable(msg.sender),
             payable(address(this)),
-            msg.sender,
             price,
             false
         );
@@ -111,7 +109,7 @@ contract NFTMarketplace is ERC721URIStorage {
             "Price must be equal to listing price"
         );
 
-        idToMarketItem[tokenId].sold = false;
+        idToMarketItem[tokenId].sold = true;
         idToMarketItem[tokenId].price = price;
         idToMarketItem[tokenId].seller = payable(msg.sender);
         idToMarketItem[tokenId].owner = payable(address(this));
@@ -146,19 +144,28 @@ contract NFTMarketplace is ERC721URIStorage {
     /* Returns all unsold market items */
     function fetchMarketItems() public view returns (MarketItem[] memory) {
         uint256 itemCount = _tokenIds;
-
-        uint256 unsoldItemCount = _itemsSold > _tokenIds
-            ? 0
-            : (_tokenIds - _itemsSold);
+        uint256 unsoldItemCount = 0;
         uint256 currentIndex = 0;
 
+        // Đếm số lượng các item chưa bán
+        for (uint256 i = 1; i <= itemCount; i++) {
+            if (
+                idToMarketItem[i].owner == address(this) &&
+                !idToMarketItem[i].sold
+            ) {
+                unsoldItemCount++;
+            }
+        }
+
+        // Tạo mảng mới để chứa các item chưa bán
         MarketItem[] memory items = new MarketItem[](unsoldItemCount);
-        for (uint256 i = 0; i < itemCount; i++) {
-            if (idToMarketItem[i + 1].owner == address(this)) {
-                uint256 currentId = i + 1;
-                MarketItem storage currentItem = idToMarketItem[currentId];
-                items[currentIndex] = currentItem;
-                currentIndex += 1;
+        for (uint256 i = 1; i <= itemCount; i++) {
+            if (
+                idToMarketItem[i].owner == address(this) &&
+                !idToMarketItem[i].sold
+            ) {
+                items[currentIndex] = idToMarketItem[i];
+                currentIndex++;
             }
         }
         return items;
@@ -167,22 +174,22 @@ contract NFTMarketplace is ERC721URIStorage {
     /* Returns only items that a user has purchased */
     function fetchMyNFTs() public view returns (MarketItem[] memory) {
         uint256 totalItemCount = _tokenIds;
-        uint256 itemCount = 0;
+        uint256 myItemCount = 0;
         uint256 currentIndex = 0;
 
-        for (uint256 i = 0; i < totalItemCount; i++) {
-            if (idToMarketItem[i + 1].owner == msg.sender) {
-                itemCount += 1;
+        // Đếm số lượng NFT thuộc sở hữu của người dùng
+        for (uint256 i = 1; i <= totalItemCount; i++) {
+            if (idToMarketItem[i].owner == msg.sender) {
+                myItemCount++;
             }
         }
 
-        MarketItem[] memory items = new MarketItem[](itemCount);
-        for (uint256 i = 0; i < totalItemCount; i++) {
-            if (idToMarketItem[i + 1].owner == msg.sender) {
-                uint256 currentId = i + 1;
-                MarketItem storage currentItem = idToMarketItem[currentId];
-                items[currentIndex] = currentItem;
-                currentIndex += 1;
+        // Tạo mảng mới để chứa các NFT của người dùng
+        MarketItem[] memory items = new MarketItem[](myItemCount);
+        for (uint256 i = 1; i <= totalItemCount; i++) {
+            if (idToMarketItem[i].owner == msg.sender) {
+                items[currentIndex] = idToMarketItem[i];
+                currentIndex++;
             }
         }
         return items;
@@ -191,22 +198,28 @@ contract NFTMarketplace is ERC721URIStorage {
     /* Returns only items a user has listed */
     function fetchItemsListed() public view returns (MarketItem[] memory) {
         uint256 totalItemCount = _tokenIds;
-        uint256 itemCount = 0;
+        uint256 listedItemCount = 0;
         uint256 currentIndex = 0;
 
-        for (uint256 i = 0; i < totalItemCount; i++) {
-            if (idToMarketItem[i + 1].seller == msg.sender) {
-                itemCount += 1;
+        // Đếm số lượng các item mà người dùng đã niêm yết
+        for (uint256 i = 1; i <= totalItemCount; i++) {
+            if (
+                idToMarketItem[i].seller == msg.sender &&
+                !idToMarketItem[i].sold
+            ) {
+                listedItemCount++;
             }
         }
 
-        MarketItem[] memory items = new MarketItem[](itemCount);
-        for (uint256 i = 0; i < totalItemCount; i++) {
-            if (idToMarketItem[i + 1].seller == msg.sender) {
-                uint256 currentId = i + 1;
-                MarketItem storage currentItem = idToMarketItem[currentId];
-                items[currentIndex] = currentItem;
-                currentIndex += 1;
+        // Tạo mảng mới để chứa các item mà người dùng đã niêm yết
+        MarketItem[] memory items = new MarketItem[](listedItemCount);
+        for (uint256 i = 1; i <= totalItemCount; i++) {
+            if (
+                idToMarketItem[i].seller == msg.sender &&
+                !idToMarketItem[i].sold
+            ) {
+                items[currentIndex] = idToMarketItem[i];
+                currentIndex++;
             }
         }
         return items;
@@ -325,13 +338,15 @@ contract NFTMarketplace is ERC721URIStorage {
             idToMarketItem[tokenId].owner == msg.sender,
             "Only owner can start auction"
         );
-        require(idToMarketItem[tokenId].sold == true, "Item is already sold");
+
+        
+        require(!idToMarketItem[tokenId].sold, "Item is already sold");
 
         require(
             !idToAuction[tokenId].active ||
                 block.timestamp >= idToAuction[tokenId].endTime,
-            "An active auction already exists for this item"
-        );  
+            "An active auction already exists or has not ended for this item"
+        );
 
         idToAuction[tokenId] = Auction(
             tokenId,

@@ -31,7 +31,7 @@ const connectWithContract = async () => {
 export const NFTMarketplaceContext = React.createContext();
 
 export const NFTMarketplaceProvider = ({ children }) => {
-  const rpcJSONProviderString = `https://polygon-amoy.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_ID}`;
+  const rpcJSONProviderString = "https://rpc-amoy.polygon.technology/";
   const localRPCProviderString = "http://localhost:8545";
   const router = useRouter();
   const titleData = "Discover NFTs world";
@@ -246,14 +246,11 @@ export const NFTMarketplaceProvider = ({ children }) => {
   const fetchNFTs = async () => {
     try {
       const provider = new ethers.providers.JsonRpcProvider(
-        // localhost provider
-        // localRPCProviderString
         rpcJSONProviderString
       );
       const contract = fetchContract(provider);
       const data = await contract.fetchMarketItems();
 
-      console.log("NFTs fetched:", data);
       const items = await Promise.all(
         data.map(
           async ({ tokenId, seller, owner, price: unformattedPrice }) => {
@@ -352,13 +349,11 @@ export const NFTMarketplaceProvider = ({ children }) => {
   const fetchNFTsByIds = async (ids) => {
     try {
       const provider = new ethers.providers.JsonRpcProvider(
-
         rpcJSONProviderString
       );
       const contract = fetchContract(provider); // Ensure fetchContract returns the updated contract instance
       const data = await contract.fetchMarketItemsByIds(ids);
 
-      console.log("NFTs fetched:", data);
       const items = await Promise.all(
         data.map(
           async ({ tokenId, seller, owner, price: unformattedPrice }) => {
@@ -394,7 +389,6 @@ export const NFTMarketplaceProvider = ({ children }) => {
   const fetchNFTById = async (id) => {
     try {
       const provider = new ethers.providers.JsonRpcProvider(
-
         rpcJSONProviderString
       );
       const contract = fetchContract(provider);
@@ -470,7 +464,6 @@ export const NFTMarketplaceProvider = ({ children }) => {
         alert("Transaction failed. Please try again.");
       }
     } catch (e) {
-      console.error("Error during bid placing:", e);
       alert(e.message || "Error during bid placing");
     }
   };
@@ -497,8 +490,9 @@ export const NFTMarketplaceProvider = ({ children }) => {
 
   const fetchAuction = async (tokenId) => {
     try {
-      const provider = new ethers.providers.JsonRpcProvider();
-      rpcJSONProviderString
+      const provider = new ethers.providers.JsonRpcProvider(
+        rpcJSONProviderString
+      );
       const contract = fetchContract(provider);
       const data = await contract.fetchAuction(tokenId);
 
@@ -515,7 +509,6 @@ export const NFTMarketplaceProvider = ({ children }) => {
   const fetchAllAuction = async () => {
     try {
       const provider = new ethers.providers.JsonRpcProvider(
-
         rpcJSONProviderString
       );
       const contract = fetchContract(provider);

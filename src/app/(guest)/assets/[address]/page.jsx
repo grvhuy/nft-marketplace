@@ -37,6 +37,7 @@ const NFTDetailsPage = () => {
     useContext(NFTMarketplaceContext);
 
   useEffect(() => {
+    console.log("auction :", auction);
     fetchNFTById(tokenId).then((res) => {
       console.log(res);
       setNft(res);
@@ -75,9 +76,9 @@ const NFTDetailsPage = () => {
             <Image
               src={nft.image}
               alt={nft.name}
+              width={500} // Thay đổi giá trị này theo thiết kế
               height={500}
               priority
-              width={500}
               className={`hover:shadow-sm aspect-square block rounded-md`}
             />
             <div className="mt-4">
@@ -155,26 +156,46 @@ const NFTDetailsPage = () => {
 
             <div className="mt-4 flex space-x-2">
               {auction === null ? (
-                // Render the "Buy NFT" or "You are the owner of this NFT" buttons if no auction is active
+                // Nếu không có đấu giá, hiển thị nút "Buy NFT" hoặc "You are the owner of this NFT"
                 currentAccount &&
                 currentAccount === nft.seller.toLowerCase() ? (
-                  <button
-                    disabled
-                    className="max-w-60 bg-[#545455] p-6 font-bold mt-8 rounded-xl"
-                  >
-                    You are the owner of this NFT
-                  </button>
-                ) : (
+                  <>
+                    <button
+                      disabled
+                      className=" bg-[#545455] p-6 font-bold mt-8 rounded-xl"
+                    >
+                      You are the owner of this NFT
+                    </button>
+                    <Link className="h-full" href={`/assets/resell/${tokenId}`}>
+                      <button className="max-w-60 bg-purple-600 p-6 font-bold mt-8 rounded-xl">
+                        List on Market
+                      </button>
+                    </Link>
+                  </>
+                ) : nft.owner.toLowerCase() === currentAccount ? (
                   <MyButton
                     onClick={() => {
+                      router.push(`/assets/resell/${tokenId}`);
+                    }}
+                    title="List on Market"
+                  />
+                ) : (
+                  <MyButton
+                    disabled={
+                      currentAccount === null ||
+                      nft.seller === ethers.constants.AddressZero
+                    }
+                    onClick={() => {
+                      // console.log(nft)
                       buyNFT(nft).then(() => {
+                        alert("Buy NFT successfully!");
                         window.location.reload();
                       });
                     }}
                     title="Buy NFT"
                   />
                 )
-              ) : // Render the "Place Bid" or "Your NFT currently on Auction" buttons if an auction is active
+              ) : // Nếu có đấu giá, hiển thị nút "Place Bid" hoặc "Your NFT currently on Auction"
               currentAccount &&
                 currentAccount === auction.seller.toLowerCase() ? (
                 <button
@@ -184,54 +205,14 @@ const NFTDetailsPage = () => {
                   Your NFT currently on Auction
                 </button>
               ) : (
-                <>
-                  <AuctionDialog
-                    onClick={(price) => {
-                      placeBid(nft.tokenId, price).then(() => {
-                        window.location.reload();
-                      });
-                    }}
-                  />
-                </>
-              )}
-              {/* {auction === null && currentAccount &&
-              currentAccount === nft.seller.toLowerCase() ? (
-                <button
-                  disabled
-                  className="max-w-60 bg-[#545455] p-6 font-bold mt-8 rounded-xl "
-                >
-                  You are the owner of this NFT
-                </button>
-              ) : (
-                <MyButton
-                  onClick={() => {
-                    buyNFT(nft).then(() => {
+                <AuctionDialog
+                  onClick={(price) => {
+                    placeBid(nft.tokenId, price).then(() => {
                       window.location.reload();
                     });
                   }}
-                  title="Buy NFT"
                 />
               )}
-
-              {auction &&
-              currentAccount &&
-              currentAccount === auction.seller.toLowerCase() ? (
-                <button
-                  disabled
-                  className=" bg-[#545455] p-6 font-bold mt-8 rounded-xl "
-                >
-                  Your NFT currently on Auction
-                </button>
-              ) : (
-                <MyButton
-                  onClick={() => {
-                    placeBid(nft).then(() => {
-                      window.location.reload();
-                    });
-                  }}
-                  title="Place Bid"
-                />
-              )} */}
             </div>
 
             <div className="mt-6">
@@ -262,18 +243,24 @@ const NFTDetailsPage = () => {
                           Offer by{" "}
                           <span className="font-semibold text-blue-300">
                             {auction.highestBidder ===
-                            "0x0000000000000000000000000000000000000000"
-                              ? "No offers yet"
-                              : (
-                                  <span 
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(auction.highestBidder);
-                                    }}
-                                  className="flex items-center">
-                                    {auction.highestBidder}
-                                    <Copy size={16} className="ml-2 cursor-pointer" />
-                                  </span>
-                              )}
+                            "0x0000000000000000000000000000000000000000" ? (
+                              "No offers yet"
+                            ) : (
+                              <span
+                                onClick={() => {
+                                  navigator.clipboard.writeText(
+                                    auction.highestBidder
+                                  );
+                                }}
+                                className="flex items-center"
+                              >
+                                {auction.highestBidder}
+                                <Copy
+                                  size={16}
+                                  className="ml-2 cursor-pointer"
+                                />
+                              </span>
+                            )}
                           </span>{" "}
                           <p className="font-semibold">
                             {priceInEth} ETH (≈ {convertToUSD(priceInEth)} USD)

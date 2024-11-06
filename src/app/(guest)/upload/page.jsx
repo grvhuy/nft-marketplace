@@ -79,7 +79,7 @@ const UploadNFT = () => {
   return (
     <div className="mx-20 lg:mx-60 p-5 mb-20 bg-[#484646] shadow-lg rounded-lg mt-10">
       <h2 className="text-2xl text-white font-semibold mb-6 text-center">
-        Upload NFT
+        Create and List your NFT
       </h2>
 
       {/* Image Upload */}
