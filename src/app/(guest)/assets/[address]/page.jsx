@@ -57,7 +57,11 @@ const NFTDetailsPage = () => {
     });
   }, []);
 
-  useEffect(() => {}, []);
+
+  const handleBuyNFT = () => {
+    buyNFT(nft).then((res) => console.log(res));
+    // console.log(nft);
+  }
 
   return (
     <div className="bg-[#2b2b2b] p-6 rounded-lg shadow-lg mx-20 min-h-screen text-white">
@@ -185,13 +189,7 @@ const NFTDetailsPage = () => {
                       currentAccount === null ||
                       nft.seller === ethers.constants.AddressZero
                     }
-                    onClick={() => {
-                      // console.log(nft)
-                      buyNFT(nft).then(() => {
-                        alert("Buy NFT successfully!");
-                        window.location.reload();
-                      });
-                    }}
+                    onClick={handleBuyNFT}
                     title="Buy NFT"
                   />
                 )
@@ -208,7 +206,7 @@ const NFTDetailsPage = () => {
                 <AuctionDialog
                   onClick={(price) => {
                     placeBid(nft.tokenId, price).then(() => {
-                      window.location.reload();
+                      // window.location.reload();
                     });
                   }}
                 />
@@ -222,7 +220,7 @@ const NFTDetailsPage = () => {
                   href={`https://amoy.polygonscan.com/nft/${nftmarketplaceaddress}/${tokenId}`}
                 >
                   <button className="bg-[#ac8be0] text-white font-semibold  px-4 py-2 opacity-80 rounded-lg transition-opacity duration-300 hover:opacity-100">
-                    Activities
+                    Provenance
                   </button>
                 </Link>
                 <button className="bg-[#ac8be0] text-white  font-semibold px-4 py-2 opacity-80 rounded-lg transition-opacity duration-300 hover:opacity-100">

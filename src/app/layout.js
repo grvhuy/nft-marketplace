@@ -1,6 +1,7 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import { NFTMarketplaceProvider } from "../../Context/NFTMarketplaceContext";
+import { IPDBProvider } from "../../Context/IPDBContext";
 import Header from "../components/layout/header";
 import Footer from "../components/layout/footer";
 import { Work_Sans } from "next/font/google";
@@ -16,7 +17,7 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-const font = Work_Sans({ subsets: ["latin"] })
+const font = Work_Sans({ subsets: ["latin"] });
 
 export const metadata = {
   title: "NFT Marketplace",
@@ -26,15 +27,17 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-        <body
-          className={`${font.className} ${geistMono.variable} antialiased bg-[#2b2b2b]`}
-          >
+      <body
+        className={`${font.className} ${geistMono.variable} antialiased bg-[#2b2b2b]`}
+      >
+        <IPDBProvider>
           <NFTMarketplaceProvider>
             <Header />
             {children}
             <Footer />
-          </NFTMarketplaceProvider> 
-        </body>
-      </html>
+          </NFTMarketplaceProvider>
+        </IPDBProvider>
+      </body>
+    </html>
   );
 }

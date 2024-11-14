@@ -5,11 +5,9 @@ import Dropzone, { useDropzone } from "react-dropzone";
 import NFTMarketplaceContext from "../../../../Context/NFTMarketplaceContext";
 import { useRouter } from "next/navigation";
 import Spinner from "@/components/Spinner";
+import { nftmarketplaceABI } from "../../../../Context/constants";
 
 const UploadNFT = () => {
-  const router = useRouter();
-
-
 
   const { uploadFile, createNFT, currentAccount } = React.useContext(NFTMarketplaceContext);
 

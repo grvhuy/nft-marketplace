@@ -1,6 +1,5 @@
 import Image from "next/image";
 import { Button } from "../ui/button";
-import { cn } from "@/lib/utils";
 const HeroSection = () => {
   return (
     <div className="grid grid-cols-2 mt-8 mx-40">

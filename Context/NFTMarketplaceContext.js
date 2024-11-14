@@ -220,10 +220,10 @@ export const NFTMarketplaceProvider = ({ children }) => {
       }
 
       const receipt = await transaction.wait();
-      console.log("NFT created successfully: ", receipt);
 
       if (receipt.status === 1) {
         alert("NFT created successfully!");
+        router.refresh()
       } else {
         alert("Transaction failed. Please try again.");
       }
@@ -338,6 +338,7 @@ export const NFTMarketplaceProvider = ({ children }) => {
 
       if (receipt.status === 1) {
         alert("NFT purchased successfully!");
+        router.refresh()
       } else {
         alert("Transaction failed. Please try again.");
       }
