@@ -42,15 +42,15 @@ contract NFTMarketplace is ERC721URIStorage {
         owner = payable(msg.sender);
     }
 
-    function updateListingPrice(
-        uint256 _listingPrice
-    ) public payable onlyOwner {
-        require(
-            owner == msg.sender,
-            "Only marketplace owner can update listing price."
-        );
-        listingPrice = _listingPrice;
-    }
+    // function updateListingPrice(
+    //     uint256 _listingPrice
+    // ) public payable onlyOwner {
+    //     require(
+    //         owner == msg.sender,
+    //         "Only marketplace owner can update listing price."
+    //     );
+    //     listingPrice = _listingPrice;
+    // }
 
     /* Returns the listing price of the contract
         view: listing price is a state variable, we use view to read the state, 
@@ -172,28 +172,28 @@ contract NFTMarketplace is ERC721URIStorage {
     }
 
     /* Returns only items that a user has purchased */
-    function fetchMyNFTs() public view returns (MarketItem[] memory) {
-        uint256 totalItemCount = _tokenIds;
-        uint256 myItemCount = 0;
-        uint256 currentIndex = 0;
+    // function fetchMyNFTs() public view returns (MarketItem[] memory) {
+    //     uint256 totalItemCount = _tokenIds;
+    //     uint256 myItemCount = 0;
+    //     uint256 currentIndex = 0;
 
-        // Đếm số lượng NFT thuộc sở hữu của người dùng
-        for (uint256 i = 1; i <= totalItemCount; i++) {
-            if (idToMarketItem[i].owner == msg.sender) {
-                myItemCount++;
-            }
-        }
+    //     // Đếm số lượng NFT thuộc sở hữu của người dùng
+    //     for (uint256 i = 1; i <= totalItemCount; i++) {
+    //         if (idToMarketItem[i].owner == msg.sender) {
+    //             myItemCount++;
+    //         }
+    //     }
 
-        // Tạo mảng mới để chứa các NFT của người dùng
-        MarketItem[] memory items = new MarketItem[](myItemCount);
-        for (uint256 i = 1; i <= totalItemCount; i++) {
-            if (idToMarketItem[i].owner == msg.sender) {
-                items[currentIndex] = idToMarketItem[i];
-                currentIndex++;
-            }
-        }
-        return items;
-    }
+    //     // Tạo mảng mới để chứa các NFT của người dùng
+    //     MarketItem[] memory items = new MarketItem[](myItemCount);
+    //     for (uint256 i = 1; i <= totalItemCount; i++) {
+    //         if (idToMarketItem[i].owner == msg.sender) {
+    //             items[currentIndex] = idToMarketItem[i];
+    //             currentIndex++;
+    //         }
+    //     }
+    //     return items;
+    // }
 
     /* Returns only items a user has listed */
     function fetchItemsListed() public view returns (MarketItem[] memory) {
@@ -225,19 +225,19 @@ contract NFTMarketplace is ERC721URIStorage {
         return items;
     }
 
-    function fetchMarketItemsByIds(
-        uint256[] memory tokenIds
-    ) public view returns (MarketItem[] memory) {
-        uint256 tokenCount = tokenIds.length;
-        MarketItem[] memory items = new MarketItem[](tokenCount);
+    // function fetchMarketItemsByIds(
+    //     uint256[] memory tokenIds
+    // ) public view returns (MarketItem[] memory) {
+    //     uint256 tokenCount = tokenIds.length;
+    //     MarketItem[] memory items = new MarketItem[](tokenCount);
 
-        for (uint256 i = 0; i < tokenCount; i++) {
-            uint256 tokenId = tokenIds[i];
-            items[i] = idToMarketItem[tokenId];
-        }
+    //     for (uint256 i = 0; i < tokenCount; i++) {
+    //         uint256 tokenId = tokenIds[i];
+    //         items[i] = idToMarketItem[tokenId];
+    //     }
 
-        return items;
-    }
+    //     return items;
+    // }
 
     function fetchMarketItemById(
         uint256 tokenId
@@ -245,61 +245,61 @@ contract NFTMarketplace is ERC721URIStorage {
         return idToMarketItem[tokenId];
     }
 
-    function fetchNFTsByOwner(
-        address ownerAddress
-    ) public view returns (MarketItem[] memory) {
-        uint256 totalItemCount = _tokenIds;
-        uint256 itemCount = 0;
-        uint256 currentIndex = 0;
+    // function fetchNFTsByOwner(
+    //     address ownerAddress
+    // ) public view returns (MarketItem[] memory) {
+    //     uint256 totalItemCount = _tokenIds;
+    //     uint256 itemCount = 0;
+    //     uint256 currentIndex = 0;
 
-        for (uint256 i = 0; i < totalItemCount; i++) {
-            if (idToMarketItem[i + 1].owner == ownerAddress) {
-                itemCount += 1;
-            }
-        }
+    //     for (uint256 i = 0; i < totalItemCount; i++) {
+    //         if (idToMarketItem[i + 1].owner == ownerAddress) {
+    //             itemCount += 1;
+    //         }
+    //     }
 
-        MarketItem[] memory items = new MarketItem[](itemCount);
-        for (uint256 i = 0; i < totalItemCount; i++) {
-            if (idToMarketItem[i + 1].owner == ownerAddress) {
-                uint256 currentId = i + 1;
-                MarketItem storage currentItem = idToMarketItem[currentId];
-                items[currentIndex] = currentItem;
-                currentIndex += 1;
-            }
-        }
-        return items;
-    }
+    //     MarketItem[] memory items = new MarketItem[](itemCount);
+    //     for (uint256 i = 0; i < totalItemCount; i++) {
+    //         if (idToMarketItem[i + 1].owner == ownerAddress) {
+    //             uint256 currentId = i + 1;
+    //             MarketItem storage currentItem = idToMarketItem[currentId];
+    //             items[currentIndex] = currentItem;
+    //             currentIndex += 1;
+    //         }
+    //     }
+    //     return items;
+    // }
 
-    function fetchNFTsListedBySeller(
-        address sellerAddress
-    ) public view returns (MarketItem[] memory) {
-        uint256 totalItemCount = _tokenIds;
-        uint256 itemCount = 0;
-        uint256 currentIndex = 0;
+    // function fetchNFTsListedBySeller(
+    //     address sellerAddress
+    // ) public view returns (MarketItem[] memory) {
+    //     uint256 totalItemCount = _tokenIds;
+    //     uint256 itemCount = 0;
+    //     uint256 currentIndex = 0;
 
-        for (uint256 i = 0; i < totalItemCount; i++) {
-            if (
-                idToMarketItem[i + 1].seller == sellerAddress &&
-                idToMarketItem[i + 1].sold == false
-            ) {
-                itemCount += 1;
-            }
-        }
+    //     for (uint256 i = 0; i < totalItemCount; i++) {
+    //         if (
+    //             idToMarketItem[i + 1].seller == sellerAddress &&
+    //             idToMarketItem[i + 1].sold == false
+    //         ) {
+    //             itemCount += 1;
+    //         }
+    //     }
 
-        MarketItem[] memory items = new MarketItem[](itemCount);
-        for (uint256 i = 0; i < totalItemCount; i++) {
-            if (
-                idToMarketItem[i + 1].seller == sellerAddress &&
-                idToMarketItem[i + 1].sold == false
-            ) {
-                uint256 currentId = i + 1;
-                MarketItem storage currentItem = idToMarketItem[currentId];
-                items[currentIndex] = currentItem;
-                currentIndex += 1;
-            }
-        }
-        return items;
-    }
+    //     MarketItem[] memory items = new MarketItem[](itemCount);
+    //     for (uint256 i = 0; i < totalItemCount; i++) {
+    //         if (
+    //             idToMarketItem[i + 1].seller == sellerAddress &&
+    //             idToMarketItem[i + 1].sold == false
+    //         ) {
+    //             uint256 currentId = i + 1;
+    //             MarketItem storage currentItem = idToMarketItem[currentId];
+    //             items[currentIndex] = currentItem;
+    //             currentIndex += 1;
+    //         }
+    //     }
+    //     return items;
+    // }
 
     // AUCTION
     struct Auction {

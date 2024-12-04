@@ -30,13 +30,13 @@ export default function RootLayout({ children }) {
       <body
         className={`${font.className} ${geistMono.variable} antialiased bg-[#2b2b2b]`}
       >
-        <IPDBProvider>
-          <NFTMarketplaceProvider>
+        <NFTMarketplaceProvider>
+          <IPDBProvider>
             <Header />
             {children}
             <Footer />
-          </NFTMarketplaceProvider>
-        </IPDBProvider>
+          </IPDBProvider>
+        </NFTMarketplaceProvider>
       </body>
     </html>
   );

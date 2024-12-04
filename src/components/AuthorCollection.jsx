@@ -123,7 +123,7 @@ const AuthorCollection = (props) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 overflow-x-auto p-4">
-      {props.nfts.map((nft, index) => (
+      {props.nfts && props.nfts.map((nft, index) => (
         <NFTCard key={index} {...nft} />
       ))}
     </div>

@@ -1,28 +1,38 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import NFTMarketplaceContext from "../../../Context/NFTMarketplaceContext";
+import { addUser, getUsers } from "@/lib/rxDB";
 
 const Header = () => {
-  const { connectWallet, currentAccount, showCurrentAccount } = React.useContext(
+  const { connectWallet, currentAccount } = React.useContext(
     NFTMarketplaceContext
   );
+  const [users, setUsers] = useState([]);
+  const [dbReady, setDbReady] = useState(false);
 
-  useEffect(() => {
-    console.log("currentAccount", currentAccount);
-  }, [currentAccount])
+  // useEffect(() => {
+  //   console.log("currentAccount", currentAccount);
+  // }, [currentAccount])
 
-  const handleClick = () => {};
+  // useEffect(() => {
+  //   const initializeDb = async () => {
+  //     try {
+  //       await getUsers(); // Chỉ gọi để đảm bảo database sẵn sàng
+  //       setDbReady(true);
+  //     } catch (err) {
+  //       console.error("Error initializing database:", err);
+  //     }
+  //   };
+
+  //   initializeDb();
+  // }, []);
 
   return (
     <header className="flex shadow-md py-4 px-4 sm:px-10 bg-primary font-[sans-serif] min-h-[70px] tracking-wide relative z-50">
       <div className="flex flex-wrap items-center justify-between gap-5 w-full">
         <a href="#">
-          <img
-            src="/images/wallet.webp"
-            alt="logo"
-            className="w-12"
-          />
+          <img src="/images/wallet.webp" alt="logo" className="w-12" />
         </a>
 
         <div
@@ -103,10 +113,10 @@ const Header = () => {
             </li> */}
             <li className="max-lg:border-b border-gray-300 max-lg:py-3 px-3">
               <a
-                href="/connectWallet"
+                href={`/account/${currentAccount}` || "/account"}
                 className="hover:text-[#007bff] text-gray-500 block font-semibold text-[15px]"
               >
-                Connect Wallet
+                Account
               </a>
             </li>
           </ul>
@@ -118,12 +128,12 @@ const Header = () => {
               onClick={connectWallet}
               className="px-4 py-2 text-sm rounded-sm font-bold text-white  bg-[#a259ff] transition-all ease-in-out duration-300 hover:bg-transparent hover:text-[#007bff]"
             >
-              Connect
+              Continue with Metamask
             </button>
           ) : (
             <a href="/upload">
               <button
-                onClick={handleClick}
+                // onClick={()=>{}}
                 className="px-4 py-2 text-sm rounded-sm font-bold text-white  bg-[#a259ff] transition-all ease-in-out duration-300 hover:bg-transparent hover:text-[#007bff]"
               >
                 Create

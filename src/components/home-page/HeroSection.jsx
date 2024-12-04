@@ -29,6 +29,7 @@ const HeroSection = () => {
       </div>
       <div>
         <Image
+          priority
           unoptimized
           src="https://cdn.animaapp.com/projects/6357ce7c8a65b2f16659918c/files/heroanimationtransparentbck-2.gif"
           alt="hero"

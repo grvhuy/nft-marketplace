@@ -1,61 +1,113 @@
 "use client";
+import {
+  followUser,
+  unfollowUser
+} from "@/lib/rxDB";
 import { InstagramLogoIcon, LinkedInLogoIcon } from "@radix-ui/react-icons";
 import {
   Copy,
-  Facebook,
-  FacebookIcon,
-  LucideFacebook,
-  Youtube,
+  FacebookIcon
 } from "lucide-react";
-import React, { useState } from "react";
-import MyButton2 from "../components/custom/MyButton2";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import NFTMarketplaceContext from "../../Context/NFTMarketplaceContext";
+import MyButton2 from "../components/custom/MyButton2";
 
-const testURL =
-  "https://scontent.fsgn19-1.fna.fbcdn.net/v/t1.15752-9/462534232_1052853119969676_1093995911813386268_n.png?_nc_cat=107&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeEl1Qfs58HCWe2vceHG4g-mPXxybZtGEkQ9fHJtm0YSRGKSih6lL5jXoclQU3lkdGSA1Hn845yjjv6oQRBI2Fc2&_nc_ohc=4EbyBoIIdFAQ7kNvgEi68R7&_nc_ht=scontent.fsgn19-1.fna&_nc_gid=AhB9PvgR8Gn3nVDNfCJZGg6&oh=03_Q7cD1QF0WIPIJ7_PmHR1xjGbVTmY2m5MUe9rl4xca8bcUNvQhw&oe=67300766";
+const testURL = "https://placehold.co/400";
 
-const AuthorCard = () => {
-  const [address, setAddress] = useState("0x829BD824B03D092233...A830");
+const AuthorCard = (props) => {
+  const address = usePathname().split("/").pop();
+  const { currentAccount } = React.useContext(NFTMarketplaceContext);
+  const [followed, setFollow] = useState(false);
+  const [userData, setUserData] = useState(null);
+
+  const handleFollow = async () => {
+    followUser(currentAccount, props.walletAddress).then((res) => {
+      console.log("followUser", res);
+      setFollow(true);
+    });
+  };
+
+  const handleUnfollow = async () => {
+    unfollowUser(currentAccount, props.walletAddress).then((res) => {
+      console.log("unfollowUser", res);
+      setFollow(false);
+    });
+  };
+
+  useEffect(() => {
+    // if (currentAccount) {
+    //   const checkFollowed = async () => {
+    //     if (currentAccount === props.walletAddress) {
+    //       return;
+    //     }
+    //     const isFollowed = await checkFollow(
+    //       currentAccount,
+    //       props.walletAddress
+    //     );
+    //     console.log("isFollowed", isFollowed);
+    //     setFollow(isFollowed);
+    //   };
+    //   checkFollowed();
+    // }
+  }, [currentAccount]);
 
   return (
     <div className="bg-[#2f2e2e] rounded-lg shadow-lg p-6 flex items-center space-x-4 mt-4">
       <img
-        src={testURL}
+        src={
+          props.userData?.profileImage
+            ? props.userData.profileImage
+            : "https://placehold.co/400"
+        }
         alt="Author"
         className="w-24 h-24 object-cover rounded-lg"
       />
       <div className="flex-grow">
         <div className="flex justify-between">
           <div className="flex items-center space-x-2">
-            <h2 className="text-xl font-bold text-white">Tran Van Huy</h2>
-            <span className="text-blue-500">✔️</span>
+            <h2 className="text-xl font-bold text-white">
+              {props.userData?.name || "Anonymous User"}
+            </h2>
+            {/* <span className="text-blue-500">✔️</span> */}
           </div>
           <div className="flex space-x-2">
-            <MyButton2 title="Follow" />
+            {followed ? (
+              <MyButton2 onClick={handleUnfollow} title="Following ✔️" />
+            ) : (
+              <MyButton2 onClick={handleFollow} title="Follow" />
+            )}
             <MyButton2 title="Upload" />
           </div>
         </div>
         <p className="text-white mt-1 flex items-center">
-          {address}
+          {props.walletAddress}
           <span>
             <Copy
               onClick={() => {
                 // copy address to clipboard
                 navigator.clipboard.writeText(address);
               }}
-              className="w-4 h-4 ml-1 text-white transform transition-transform duration-200 hover:scale-95 hover:text-[#8e42da] cursor-pointer"
+              className="w-4 h-4 ml-1 text-[#b886eb] transform transition-transform duration-200 hover:scale-95 hover:text-[#8e42da] cursor-pointer"
             />
           </span>
         </p>
         <p className="text-white mt-2">
-          Punk #4786 / An OG Cryptopunk Collector, hoarder of NFTs. Contributing
-          to @ether_cards, an NFT Monetization Platform.
+          {props.userData?.bio || "This person has no bio"}
         </p>
         <div className="flex space-x-4 mt-3">
-          <Link href="https://www.facebook.com/guringurxngurxn/" target="_blank">
+          <Link href={props.userData?.socials?.facebook || "#"} target="_blank">
             <InstagramLogoIcon className="w-6 h-6 transform transition-transform duration-200 hover:scale-95 hover:text-[#ed8800] text-white" />
           </Link>
-          <LinkedInLogoIcon className="w-6 h-6 transform transition-transform duration-200 hover:scale-95 hover:text-[#1362bf] text-white" />
+          <LinkedInLogoIcon
+            href={props.userData?.socials?.linkedin || "#"}
+            className="w-6 h-6 transform transition-transform duration-200 hover:scale-95 hover:text-[#1362bf] text-white"
+          />
+          <FacebookIcon
+            href={props.userData?.socials?.facebook || "#"}
+            className="w-5 h-5 transform transition-transform duration-200 hover:scale-95 hover:text-[#4267b2] text-white"
+          />
         </div>
       </div>
     </div>

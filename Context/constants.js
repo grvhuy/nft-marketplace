@@ -2,7 +2,8 @@
 import nftMarketPlace from './NFTMarketplace.json';
 import ipdb from './IPDB.json';
 
-export const nftmarketplaceaddress = "0x90d7Fe8a97B8741be59Ef440820BFc0a62770004";
+export const nftmarketplaceaddress = "0xde1d88F809E5d6A01475d3f19E8806daF2aa6274";
+export const ipdbAddress = "0x299dB1012ca3e31feBB1A806e05AaB2558c9baC0";
 export const nftmarketplaceABI = nftMarketPlace.abi;
 export const IPDBABI = ipdb.abi;
 

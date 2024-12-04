@@ -1,17 +1,10 @@
 export const checkIndexedDB = (dbName) => {
   try {
     // check if indexed db exist 
-    // if not create one
-    const dbExists = indexedDB.databases().then((dbs) => {
-      return dbs.find((db) => db.name === dbName);
+    const isExist = indexedDB.databases().then((databases) => {
+      return databases.some((db) => db.name === dbName);
     });
-    if (!dbExists) {
-      indexedDB.open(dbName, 1, (upgradeDb) => {
-        upgradeDb.createObjectStore("users", { keyPath: "id" });
-      }
-      );
-    }
-
+    return isExist;
   } catch (error) {
     console.error(error);
   }

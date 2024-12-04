@@ -1,4 +1,3 @@
 
-  export const marketplaceAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
-  export const ipdbAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+  export const marketplaceAddress = "0xde1d88F809E5d6A01475d3f19E8806daF2aa6274"
   

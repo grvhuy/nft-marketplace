@@ -7,6 +7,7 @@ import Web3modal from "web3modal";
 import { nftmarketplaceABI, nftmarketplaceaddress } from "./constants";
 import { useRouter } from "next/navigation";
 import { convertToUSD } from "../utils/convert";
+import { addUser } from "@/lib/rxDB";
 
 const fetchContract = (providerOrSigner) =>
   new ethers.Contract(
@@ -62,6 +63,7 @@ export const NFTMarketplaceProvider = ({ children }) => {
       disconnectWallet();
     } else {
       setCurrentAccount(accounts[0]);
+      addUser(accounts[0]);
     }
   }
 
@@ -109,6 +111,9 @@ export const NFTMarketplaceProvider = ({ children }) => {
       });
       setCurrentAccount(accounts[0]);
       document.cookie = `walletConnected=true; path=/;`;
+      if (accounts.length) {
+        addUser(accounts[0]);
+      }
       // window.location.reload();
       console.log("Connected account:", accounts[0]);
     } catch (error) {
@@ -223,7 +228,7 @@ export const NFTMarketplaceProvider = ({ children }) => {
 
       if (receipt.status === 1) {
         alert("NFT created successfully!");
-        router.refresh()
+        router.refresh();
       } else {
         alert("Transaction failed. Please try again.");
       }
@@ -338,7 +343,7 @@ export const NFTMarketplaceProvider = ({ children }) => {
 
       if (receipt.status === 1) {
         alert("NFT purchased successfully!");
-        router.refresh()
+        router.refresh();
       } else {
         alert("Transaction failed. Please try again.");
       }
