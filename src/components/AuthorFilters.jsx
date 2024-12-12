@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from "react";
 
-const AuthorFilters = () => {
+const AuthorFilters = (props) => {
   const [activeFilter, setActiveFilter] = useState("Collectibles");
   const [sortOption, setSortOption] = useState("Most Recent");
 
@@ -20,7 +20,11 @@ const AuthorFilters = () => {
         {["Collectibles", "Created", "Liked", "Following", "Followers"].map((filter) => (
           <button
             key={filter}
-            onClick={() => handleFilterClick(filter)}
+            // onClick={() => handleFilterClick(filter)}
+            onClick={() => {
+              props.onClick(filter);
+              handleFilterClick(filter);
+            }}
             className={`px-4 py-2 rounded-full shadow-sm transition duration-500 ${
               activeFilter === filter
                 ? "bg-[#a259ff] text-white font-semibold"

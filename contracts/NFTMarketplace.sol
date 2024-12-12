@@ -172,28 +172,28 @@ contract NFTMarketplace is ERC721URIStorage {
     }
 
     /* Returns only items that a user has purchased */
-    // function fetchMyNFTs() public view returns (MarketItem[] memory) {
-    //     uint256 totalItemCount = _tokenIds;
-    //     uint256 myItemCount = 0;
-    //     uint256 currentIndex = 0;
+    function fetchMyNFTs() public view returns (MarketItem[] memory) {
+        uint256 totalItemCount = _tokenIds;
+        uint256 myItemCount = 0;
+        uint256 currentIndex = 0;
 
-    //     // Đếm số lượng NFT thuộc sở hữu của người dùng
-    //     for (uint256 i = 1; i <= totalItemCount; i++) {
-    //         if (idToMarketItem[i].owner == msg.sender) {
-    //             myItemCount++;
-    //         }
-    //     }
+        // Đếm số lượng NFT thuộc sở hữu của người dùng
+        for (uint256 i = 1; i <= totalItemCount; i++) {
+            if (idToMarketItem[i].owner == msg.sender) {
+                myItemCount++;
+            }
+        }
 
-    //     // Tạo mảng mới để chứa các NFT của người dùng
-    //     MarketItem[] memory items = new MarketItem[](myItemCount);
-    //     for (uint256 i = 1; i <= totalItemCount; i++) {
-    //         if (idToMarketItem[i].owner == msg.sender) {
-    //             items[currentIndex] = idToMarketItem[i];
-    //             currentIndex++;
-    //         }
-    //     }
-    //     return items;
-    // }
+        // Tạo mảng mới để chứa các NFT của người dùng
+        MarketItem[] memory items = new MarketItem[](myItemCount);
+        for (uint256 i = 1; i <= totalItemCount; i++) {
+            if (idToMarketItem[i].owner == msg.sender) {
+                items[currentIndex] = idToMarketItem[i];
+                currentIndex++;
+            }
+        }
+        return items;
+    }
 
     /* Returns only items a user has listed */
     function fetchItemsListed() public view returns (MarketItem[] memory) {

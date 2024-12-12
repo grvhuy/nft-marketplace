@@ -1,15 +1,9 @@
 "use client";
-import {
-  followUser,
-  unfollowUser
-} from "@/lib/rxDB";
+import { checkFollow, followUser, getUserByWalletAddress, getUsers, unfollowUser } from "@/lib/rxDB";
 import { InstagramLogoIcon, LinkedInLogoIcon } from "@radix-ui/react-icons";
-import {
-  Copy,
-  FacebookIcon
-} from "lucide-react";
+import { Copy, FacebookIcon } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import NFTMarketplaceContext from "../../Context/NFTMarketplaceContext";
 import MyButton2 from "../components/custom/MyButton2";
@@ -21,7 +15,7 @@ const AuthorCard = (props) => {
   const { currentAccount } = React.useContext(NFTMarketplaceContext);
   const [followed, setFollow] = useState(false);
   const [userData, setUserData] = useState(null);
-
+  const router = useRouter();
   const handleFollow = async () => {
     followUser(currentAccount, props.walletAddress).then((res) => {
       console.log("followUser", res);
@@ -37,20 +31,39 @@ const AuthorCard = (props) => {
   };
 
   useEffect(() => {
-    // if (currentAccount) {
-    //   const checkFollowed = async () => {
-    //     if (currentAccount === props.walletAddress) {
-    //       return;
-    //     }
-    //     const isFollowed = await checkFollow(
-    //       currentAccount,
-    //       props.walletAddress
-    //     );
-    //     console.log("isFollowed", isFollowed);
-    //     setFollow(isFollowed);
-    //   };
-    //   checkFollowed();
-    // }
+    const checkUserDetails = async () => {
+      if (currentAccount) {
+        console.log("Current Account:", currentAccount);
+
+        // Log chi tiết để kiểm tra
+        const user = await getUserByWalletAddress(currentAccount);
+
+        console.log("Fetch Result:", {
+          user,
+          currentAccount,
+
+        });
+      }
+    };
+
+    checkUserDetails();
+  }, [currentAccount]);
+
+  useEffect(() => {
+    if (currentAccount) {
+      const checkFollowed = async () => {
+        if (currentAccount === props.walletAddress) {
+          return;
+        }
+        const isFollowed = await checkFollow(
+          currentAccount,
+          props.walletAddress
+        );
+        console.log("isFollowed", isFollowed);
+        setFollow(isFollowed);
+      };
+      checkFollowed();
+    }
   }, [currentAccount]);
 
   return (
@@ -72,14 +85,31 @@ const AuthorCard = (props) => {
             </h2>
             {/* <span className="text-blue-500">✔️</span> */}
           </div>
-          <div className="flex space-x-2">
-            {followed ? (
-              <MyButton2 onClick={handleUnfollow} title="Following ✔️" />
-            ) : (
-              <MyButton2 onClick={handleFollow} title="Follow" />
-            )}
+          {props.walletAddress !== currentAccount && (
+            <div className="flex space-x-2">
+              {followed ? (
+                <MyButton2 onClick={handleUnfollow} title="Following ✔️" />
+              ) : (
+                <MyButton2 onClick={handleFollow} title="Follow" />
+              )}
+              <MyButton2 title="Upload" />
+            </div>
+          )}
+          <MyButton2
+            title="Collections"
+            onClick={() => {
+              router.push(`/my-collections/create`);
+            }}
+          />
+          {/* <div className="space-x-2">
             <MyButton2 title="Upload" />
-          </div>
+            <MyButton2
+              title="Collections"
+              onClick={() => {
+                router.push(`/my-collections/create`);
+              }}
+            />
+          </div> */}
         </div>
         <p className="text-white mt-1 flex items-center">
           {props.walletAddress}
@@ -101,10 +131,12 @@ const AuthorCard = (props) => {
             <InstagramLogoIcon className="w-6 h-6 transform transition-transform duration-200 hover:scale-95 hover:text-[#ed8800] text-white" />
           </Link>
           <LinkedInLogoIcon
+            target="_blank"
             href={props.userData?.socials?.linkedin || "#"}
             className="w-6 h-6 transform transition-transform duration-200 hover:scale-95 hover:text-[#1362bf] text-white"
           />
           <FacebookIcon
+            target="_blank"
             href={props.userData?.socials?.facebook || "#"}
             className="w-5 h-5 transform transition-transform duration-200 hover:scale-95 hover:text-[#4267b2] text-white"
           />

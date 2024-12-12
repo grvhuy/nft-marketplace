@@ -6,6 +6,7 @@ import NFTMarketplaceContext from "../../../../Context/NFTMarketplaceContext";
 import { useRouter } from "next/navigation";
 import Spinner from "@/components/Spinner";
 import { nftmarketplaceABI } from "../../../../Context/constants";
+import { addNFTToAlbum, getAlbumsByOwnerAddress } from "@/lib/rxDB";
 
 const UploadNFT = () => {
 
@@ -26,16 +27,27 @@ const UploadNFT = () => {
     "https://placehold.co/600x400?text=Preview+Image"
   );
 
-  const collections = [
-    { id: 1, name: "Arts" },
-    { id: 2, name: "Sports" },
-    { id: 3, name: "Music" },
-    { id: 4, name: "Digital" },
-    { id: 5, name: "Photography" },
-  ];
+  // const collections = [
+  //   { id: 1, name: "Arts" },
+  //   { id: 2, name: "Sports" },
+  //   { id: 3, name: "Music" },
+  //   { id: 4, name: "Digital" },
+  //   { id: 5, name: "Photography" },
+  // ];
 
+  const [collections, setCollections] = useState([]);
+  const [currentCollection, setCurrentCollection] = useState(null);
   const [activeCollection, setActiveCollection] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (currentAccount) {
+      getAlbumsByOwnerAddress(currentAccount).then((res) => {
+        setCollections(res);
+        console.log("collections", res);
+      });
+    }
+  }, [currentAccount])
 
   const onDrop = useCallback(async (acceptedFiles, rejectedFiles) => {
     setLoading(true);
@@ -65,7 +77,7 @@ const UploadNFT = () => {
   const handleCollectionChange = (e) => {
     const collectionId = e.target.value;
     const selectedCollection = collections.find(
-      (collection) => collection.id === parseInt(collectionId)
+      (collection) => collection._data.albumname === collectionId
     );
     setActiveCollection(selectedCollection);
     setFormData({
@@ -211,20 +223,20 @@ const UploadNFT = () => {
           />
         </div>
 
-        <label className="block text-white text-sm font-medium  mt-6">
+        {/* <label className="block text-white text-sm font-medium  mt-6">
           Select Collection
-        </label>
-        <select
+        </label> */}
+        {/* <select
           className="mt-1 block w-full p-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500"
           onChange={handleCollectionChange}
         >
           <option value="">-- Choose Collection --</option>
-          {collections.map((collection) => (
-            <option key={collection.id} value={collection.id}>
-              {collection.name}
+          {collections.map((collection, index) => (
+            <option key={index} value={collection.id}>
+              {collection.albumname}
             </option>
           ))}
-        </select>
+        </select> */}
       </div>
       <div className="flex justify-between">
         <div></div>
@@ -235,7 +247,7 @@ const UploadNFT = () => {
               formData.itemName,
               formData.description,
               formData.price,
-              formData.image
+              formData.image,
             )
           }}
           title="Create and List"

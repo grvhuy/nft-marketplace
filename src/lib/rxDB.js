@@ -4,6 +4,7 @@ import { RxDBDevModePlugin } from "rxdb/plugins/dev-mode";
 import { getRxStorageDexie } from "rxdb/plugins/storage-dexie";
 import { RxDBUpdatePlugin } from "rxdb/plugins/update";
 import { RxDBJsonDumpPlugin } from "rxdb/plugins/json-dump";
+import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder'
 
 import { Dexie } from "dexie";
 import { pinata } from "../../utils/config";
@@ -12,6 +13,7 @@ import axios from "axios";
 addRxPlugin(RxDBJsonDumpPlugin);
 addRxPlugin(RxDBDevModePlugin);
 addRxPlugin(RxDBUpdatePlugin);
+addRxPlugin(RxDBQueryBuilderPlugin);
 
 let dbInstance = null;
 
@@ -34,7 +36,7 @@ export const exportDatabase = async () => {
   const exported = await db.exportJSON();
   console.log(exported);
   return exported;
-}
+};
 
 export const getDatabase = async () => {
   if (dbInstance) {
@@ -119,7 +121,7 @@ export const getUsers = async () => {
     }
 
     const db = await getDatabase();
-    
+
     if (!db.users) {
       console.warn("Collection 'users' does not exist yet");
       return [];
@@ -129,13 +131,13 @@ export const getUsers = async () => {
     return users;
   } catch (error) {
     console.error("Error in getUsers:", error);
-    
+
     // Provide a fallback mechanism
-    if (error.name === 'MissingAPIError') {
+    if (error.name === "MissingAPIError") {
       console.warn("Falling back to alternative data storage");
       return [];
     }
-    
+
     throw error;
   }
 };
@@ -143,6 +145,7 @@ export const getUsers = async () => {
 export const addUser = async (walletAddress) => {
   const db = await getDatabase();
   const isExist = await db.users.findOne(walletAddress).exec();
+
   if (isExist) {
     return { message: "User already exists" };
   }
@@ -162,22 +165,52 @@ export const addUser = async (walletAddress) => {
 
 export const getUserByWalletAddress = async (walletAddress) => {
   try {
+    if (!window.indexedDB) {
+      console.error("IndexedDB is not supported in this environment");
+      return [];
+    }
+
     const db = await getDatabase();
-    console.log("Fetching user with walletAddress:", walletAddress);
-    const user = await db.users
-      .findOne({
-        selector: {
-          walletAddress: walletAddress,
-        },
-      })
+
+    if (!db.users) {
+      console.warn("Collection 'users' does not exist yet");
+      return [];
+    }
+    
+    // // Log toàn bộ documents trong collection
+    // const allUsers = await db.users.find().exec();
+    // console.log("ALL USERS:", allUsers);
+
+    // Log chi tiết từng user
+    // allUsers.forEach(user => {
+    //   console.log("USER DETAILS:", {
+    //     walletAddress: user.walletAddress,
+    //     type: typeof user.walletAddress,
+    //     compareResult: user.walletAddress.toLowerCase() === walletAddress.toLowerCase()
+    //   });
+    // });
+
+    // Thử query với nhiều cách
+    // const userByFind = allUsers.find(
+    //   u => u.walletAddress.toLowerCase() === walletAddress.toLowerCase()
+    // );
+
+    const userByFindOne = await db.users
+      .findOne()
+      .where('walletAddress')
+      .eq(walletAddress.toLowerCase())
       .exec();
-    console.log("User found:", user);
-    return user;
+
+    // console.log("User by .find():", userByFind);
+    console.log("User by .findOne():", userByFindOne);
+
+    return userByFindOne || userByFind || null;
   } catch (error) {
-    console.error("Error fetching user:", error);
+    console.error("Detailed Error fetching user:", error);
     return null;
   }
 };
+
 export const updateUser = async (walletAddress, data) => {
   try {
     const db = await getDatabase();
@@ -209,22 +242,45 @@ export const followUser = async (walletAddress, followAddress) => {
       })
       .exec();
 
+    const followedUser = await db.users
+      .findOne({
+        selector: { walletAddress: followAddress },
+      })
+      .exec();
+
+    if (!followedUser) {
+      console.error(`User with wallet address ${followAddress} not found`);
+      return null;
+    }
+
     if (!user) {
       console.error(`User with wallet address ${walletAddress} not found`);
       return null;
     }
 
     // Prevent duplicate follows
-    if (!user.following.includes(followAddress)) {
+    if (
+      !user.following.includes(followAddress) &&
+      !followedUser.followers.includes(walletAddress)
+    ) {
       const following = [...user.following, followAddress];
+      const followers = [...followedUser.followers, walletAddress];
       const updatedUser = await user.update({
         $set: { following },
       });
-
-      return updatedUser;
+      const updatedFollowedUser = await followedUser.update({
+        $set: { followers },
+      });
+      return {
+        user: updatedUser,
+        followedUser: updatedFollowedUser,
+      };
     }
 
-    return user;
+    return {
+      user,
+      followedUser,
+    };
   } catch (error) {
     console.error("Error following user:", error);
     throw error;
@@ -232,7 +288,6 @@ export const followUser = async (walletAddress, followAddress) => {
 };
 
 export const checkFollow = async (walletAddress, followAddress) => {
-
   if (walletAddress === followAddress) {
     return;
   }
@@ -266,20 +321,42 @@ export const unfollowUser = async (walletAddress, followAddress) => {
       })
       .exec();
 
+    const followedUser = await db.users
+      .findOne({
+        selector: { walletAddress: followAddress },
+      })
+      .exec();
+
     if (!user) {
       console.error(`User with wallet address ${walletAddress} not found`);
-      return null;
+      return;
+    }
+
+    if (!followedUser) {
+      console.error(`User with wallet address ${followAddress} not found`);
+      return;
     }
 
     const following = user.following.filter(
       (address) => address !== followAddress
     );
 
+    const followers = followedUser.followers.filter(
+      (address) => address !== walletAddress
+    );
+
     const updatedUser = await user.update({
       $set: { following },
     });
 
-    return updatedUser;
+    const updatedFollowedUser = await followedUser.update({
+      $set: { followers },
+    });
+
+    return {
+      user: updatedUser,
+      followedUser: updatedFollowedUser,
+    };
   } catch (error) {
     console.error("Error unfollowing user:", error);
     throw error;
@@ -294,12 +371,37 @@ export const getFollowers = async (walletAddress) => {
         selector: { following: walletAddress },
       })
       .exec();
-    return users;
+
+    const usersFollowing = await db.users
+      .find({
+        selector: { followers: walletAddress },
+      })
+      .exec();
+    
+    return {
+      followers: users,
+      following: usersFollowing,
+    };
   } catch (error) {
     console.error("Error getting followers:", error);
     throw error;
   }
 };
+
+export const getFollowing = async (walletAddress) => {
+  try {
+    const db = await getDatabase();
+    const users = await db.users
+      .find({
+        selector: { followers: walletAddress },
+      })
+      .exec();
+    return users;
+  } catch (error) {
+    console.error("Error getting following:", error);
+    throw error;
+  }
+}
 
 export const addAlbum = async (walletAddress, albumname, descript, image) => {
   try {
@@ -361,11 +463,9 @@ export const getAlbumByName = async (albumname) => {
 export const getAlbumsByOwnerAddress = async (walletAddress) => {
   try {
     const db = await getDatabase();
-    const albums = await db.albums
-      .find({
+    const albums = await db.albums.find({
         selector: { owner: walletAddress },
-      })
-      .exec();
+      }).exec();
     return albums;
   } catch (error) {
     console.error(`Error getting albums for ${walletAddress}:`, error);

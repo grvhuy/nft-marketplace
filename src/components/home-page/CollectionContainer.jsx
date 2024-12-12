@@ -7,9 +7,9 @@ const CollectionContainer = () => {
       <h3 className="text-white text-xl ">Checkout Our Weekly Updated Trending Collection.</h3>
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 justify-center">
+        {/* <CollectionCard/>
         <CollectionCard/>
-        <CollectionCard/>
-        <CollectionCard/>
+        <CollectionCard/> */}
       </div>
     </div>
   )

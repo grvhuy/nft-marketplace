@@ -176,6 +176,7 @@ export const NFTMarketplaceProvider = ({ children }) => {
 
       const ipfsUrl = `https://blue-wonderful-antelope-164.mypinata.cloud/ipfs/${response.data.IpfsHash}`;
       await createSale(ipfsUrl, price);
+      
 
       // if (response.data.IpfsHash) {
       //   router.push("/");

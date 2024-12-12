@@ -2,7 +2,7 @@
 const nextConfig = {
   crossOrigin: "anonymous",
   images: {
-    domains: ["scontent.fsgn19-1.fna.fbcdn.net", "cdn.animaapp.com"],
+    domains: [],
     remotePatterns: [
       {
         hostname: "pqxhavcshlsgvyjmkhkv.supabase.co",
@@ -13,6 +13,12 @@ const nextConfig = {
       },
       {
         hostname: "blue-wonderful-antelope-164.mypinata.cloud",
+      },
+      {
+        hostname: "scontent.fsgn19-1.fna.fbcdn.net", 
+      },
+      {
+        hostname: "cdn.animaapp.com",
       }
     ],
   },

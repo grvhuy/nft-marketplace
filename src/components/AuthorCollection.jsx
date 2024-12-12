@@ -13,7 +13,7 @@ const NFTCard = ({tokenId, image, name, timeLeft, price }) => {
   return (
     <div onClick={
       () => router.push(`assets/${tokenId}`)
-    } className="bg-white rounded-lg shadow-lg p-4 w-64 mt-4 transform transition-transform duration-200 hover:scale-95 cursor-pointer">
+    } className="bg-slate-300 rounded-lg shadow-lg p-4 w-64 mt-4 transform transition-transform duration-200 hover:scale-95 cursor-pointer">
       <div className="relative">
         <img
           src={image}
