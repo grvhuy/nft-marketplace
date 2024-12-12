@@ -69,6 +69,7 @@ const CollectionPage = () => {
         console.log("followers", res);
       });
     }
+
   }, [currentAccount]);
 
 

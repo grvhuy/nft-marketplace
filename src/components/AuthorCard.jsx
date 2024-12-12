@@ -40,8 +40,6 @@ const AuthorCard = (props) => {
 
         console.log("Fetch Result:", {
           user,
-          currentAccount,
-
         });
       }
     };

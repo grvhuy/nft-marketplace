@@ -366,6 +366,12 @@ export const unfollowUser = async (walletAddress, followAddress) => {
 export const getFollowers = async (walletAddress) => {
   try {
     const db = await getDatabase();
+
+    const user = await db.users
+      .findOne({
+        selector: { walletAddress },
+      })
+      .exec();
     const users = await db.users
       .find({
         selector: { following: walletAddress },
@@ -379,6 +385,7 @@ export const getFollowers = async (walletAddress) => {
       .exec();
     
     return {
+      user: user,
       followers: users,
       following: usersFollowing,
     };
