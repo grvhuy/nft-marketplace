@@ -7,7 +7,7 @@ import Web3modal from "web3modal";
 import { nftmarketplaceABI, nftmarketplaceaddress } from "./constants";
 import { useRouter } from "next/navigation";
 import { convertToUSD } from "../utils/convert";
-import { addUser } from "@/lib/rxDB";
+// import { addUser } from "@/lib/rxDB";
 
 const fetchContract = (providerOrSigner) =>
   new ethers.Contract(
@@ -32,8 +32,7 @@ const connectWithContract = async () => {
 export const NFTMarketplaceContext = React.createContext();
 
 export const NFTMarketplaceProvider = ({ children }) => {
-  const rpcJSONProviderString = "https://rpc-amoy.polygon.technology/";
-  const localRPCProviderString = "http://localhost:8545";
+  const rpcJSONProviderString = "http://127.0.0.1:7545";
   const router = useRouter();
   const titleData = "Discover NFTs world";
   const [currentAccount, setCurrentAccount] = React.useState("");
@@ -58,12 +57,69 @@ export const NFTMarketplaceProvider = ({ children }) => {
     };
   }, []);
 
-  function handleAccountsChanged(accounts) {
+    async function handleAccountsChanged(accounts) {
+    // Nếu không có tài khoản nào, hãy thực hiện các hành động cần thiết khi người dùng đăng xuất
     if (accounts.length === 0) {
       disconnectWallet();
+      alert("You've disconnected your wallet.");
     } else {
-      setCurrentAccount(accounts[0]);
-      addUser(accounts[0]);
+      // Có tài khoản mới, cập nhật tài khoản hiện tại
+      const newAccount = accounts[0];
+      setCurrentAccount(newAccount);
+      
+      // Kiểm tra xem tài khoản mới có hash IPFS không
+      const ipfsHash = await getUserIPFSHash(newAccount);
+      
+      if (!ipfsHash) {
+        // Tài khoản mới chưa có dữ liệu IPFS, có thể yêu cầu tạo mới
+        const defaulUserData = {
+          address: newAccount,
+          name: "Anonymous",
+          bio: "No bio",
+          email: "Not provided yet",
+          avatar: "",
+          socials: {
+            facebook: "",
+            twitter: "",
+            instagram: "",
+          },
+        };
+  
+        const dataToPIN = {
+          pinataMetadata: {
+            name: `${newAccount}.json`,
+          },
+          pinataContent: defaulUserData,
+        };
+  
+        const newhash = await fetch(
+          "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(dataToPIN),
+          }
+        );
+  
+        if (newhash.status === 200) {
+          const response = await newhash.json();
+          await setUserIPFSHash(response.IpfsHash);
+          alert("IPFS Hash has been created and set successfully!");
+        } else {
+          alert("Failed to create IPFS Hash.");
+        }
+      } else {
+        alert(`Your existing IPFS hash is: ${ipfsHash}`);
+      }
+  
+      // Cập nhật localStorage và cookie cho tài khoản mới
+      localStorage.setItem("currentAccount", newAccount);
+      document.cookie = `walletConnected=true; path=/; SameSite=Strict`;
+  
+      console.log("Connected account:", newAccount);
     }
   }
 
@@ -104,20 +160,76 @@ export const NFTMarketplaceProvider = ({ children }) => {
     try {
       if (!window.ethereum) {
         console.log("Please connect or install your Metamask wallet");
-        return;
+        return null;
       }
+
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
-      setCurrentAccount(accounts[0]);
-      document.cookie = `walletConnected=true; path=/;`;
-      if (accounts.length) {
-        addUser(accounts[0]);
+
+      if (accounts.length > 0) {
+        const account = accounts[0];
+
+        const ipfsHash = await getUserIPFSHash(account);
+
+        if (!ipfsHash) {
+          const defaulUserData = {
+            address: account,
+            name: "Anonymous",
+            bio: "No bio",
+            email: "Not provided yet",
+            avatar: "",
+            socials: {
+              facebook: "",
+              twitter: "",
+              instagram: "",
+            },
+          };
+
+          const dataToPIN = {
+            pinataMetadata: {
+              name: `${account}.json`,
+            },
+            pinataContent: defaulUserData,
+          };
+
+          const newhash = await fetch(
+            "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+            {
+              method: "POST",
+
+              headers: {
+                Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(dataToPIN),
+            }
+          );
+
+          if (newhash.status === 200) {
+            const response = await newhash.json();
+            await setUserIPFSHash(response.IpfsHash);
+            alert("IPFS Hash has been created and set successfully!");
+          } else {
+            alert("Failed to create IPFS Hash.");
+          }
+        }
+
+        // Lưu vào localStorage để duy trì giữa các lần reload
+        localStorage.setItem("currentAccount", account);
+
+        document.cookie = `walletConnected=true; path=/; SameSite=Strict`;
+
+        // await addUser(account);
+
+        setCurrentAccount(account);
+
+        console.log("Connected account:", account);
+        return account;
       }
-      // window.location.reload();
-      console.log("Connected account:", accounts[0]);
     } catch (error) {
-      console.log("Error connecting wallet:", error);
+      console.error("Error connecting wallet:", error);
+      return null;
     }
   };
 
@@ -166,17 +278,14 @@ export const NFTMarketplaceProvider = ({ children }) => {
         data: data,
         headers: {
           "Content-Type": "application/json",
-          pinata_api_key: "f5ae3b8c67acdfa150eb",
-          // process.env.NEXT_PUBLIC_PINATA_API_KEY,
+          pinata_api_key: "87b515e0af1c6568fc71",
           pinata_secret_api_key:
-            "ecae8e87af7c08c83d9627c39cab071a941bb98d271d8afbcc582f6192c1843a",
-          // process.env.NEXT_PUBLIC_PINATA_SECRET_KEY,
+            "125429af9899ca059f171c7007afdefacc2c6f8da5ee8218979028dcec192e48",
         },
       });
 
-      const ipfsUrl = `https://blue-wonderful-antelope-164.mypinata.cloud/ipfs/${response.data.IpfsHash}`;
+      const ipfsUrl = `https://jade-legislative-fowl-319.mypinata.cloud/ipfs/${response.data.IpfsHash}`;
       await createSale(ipfsUrl, price);
-      
 
       // if (response.data.IpfsHash) {
       //   router.push("/");
@@ -189,66 +298,122 @@ export const NFTMarketplaceProvider = ({ children }) => {
 
   const createSale = async (url, formInputPrice, isReselling) => {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
+
     try {
-      // Kiểm tra giá
+      // Validate price input
       if (!formInputPrice || isNaN(formInputPrice) || formInputPrice <= 0) {
         alert("Please enter a valid price.");
         return;
       }
 
+      // Convert price to wei
       const price = ethers.utils.parseUnits(formInputPrice.toString(), "ether");
       const contract = await connectWithContract();
 
-      // Lấy listing price từ hợp đồng
+      // Get listing price
       const listingPrice = await contract.getListingPrice();
 
-      // Lấy nonce hiện tại
+      // Prepare signer and network details
       const signer = provider.getSigner();
-      const nonce = await provider.getTransactionCount(
-        await signer.getAddress(),
-        "latest"
-      );
+      const signerAddress = await signer.getAddress();
+      const network = await provider.getNetwork();
 
+      // Log debug information
+      console.log("Create Sale Debug:", {
+        url,
+        price: price.toString(),
+        listingPrice: listingPrice.toString(),
+        signerAddress,
+        network: network.name,
+        isReselling,
+      });
+
+      // Estimate gas
+      let gasEstimate;
       let transaction;
+
       if (!isReselling) {
         console.log("Creating new NFT...");
-        transaction = await contract.createToken(url, price, {
-          value: listingPrice.toString(),
-          nonce: nonce,
+        gasEstimate = await contract.estimateGas.createToken(url, price, {
+          value: listingPrice,
         });
 
-        router.push("/search");
+        transaction = await contract.createToken(url, price, {
+          value: listingPrice,
+          gasLimit: gasEstimate.mul(120).div(100), // Add 20% buffer
+          type: 2, // EIP-1559 transaction type
+          maxPriorityFeePerGas: ethers.utils.parseUnits("2", "gwei"),
+          maxFeePerGas: ethers.utils.parseUnits("50", "gwei"),
+        });
       } else {
         console.log("Reselling existing NFT...");
+        gasEstimate = await contract.estimateGas.resellToken(url, price, {
+          value: listingPrice,
+        });
+
         transaction = await contract.resellToken(url, price, {
-          value: listingPrice.toString(),
+          value: listingPrice,
+          gasLimit: gasEstimate.mul(120).div(100),
+          type: 2,
+          maxPriorityFeePerGas: ethers.utils.parseUnits("2", "gwei"),
+          maxFeePerGas: ethers.utils.parseUnits("50", "gwei"),
         });
       }
 
-      const receipt = await transaction.wait();
+      // Wait for transaction confirmation
+      const receipt = await transaction.wait(1);
 
+      // Check transaction status
       if (receipt.status === 1) {
-        alert("NFT created successfully!");
-        router.refresh();
+        // Success handling
+        const successMessage = isReselling
+          ? "NFT resold successfully!"
+          : "NFT created successfully!";
+
+        alert(successMessage);
+
+        // Navigate based on creation or reselling
+        if (!isReselling) {
+          router.push("/search");
+        } else {
+          router.refresh();
+        }
+
+        return {
+          success: true,
+          transactionHash: receipt.transactionHash,
+        };
       } else {
-        alert("Transaction failed. Please try again.");
+        throw new Error("Transaction failed");
       }
     } catch (error) {
-      console.error("Error during NFT sale creation:", error.message);
+      // Comprehensive error logging
+      console.error("NFT Sale Error:", {
+        code: error.code,
+        message: error.message,
+        reason: error.reason,
+        stack: error.stack,
+      });
 
-      // Xử lý lỗi cụ thể
+      // Specific error handling
       if (error.code === ethers.errors.INSUFFICIENT_FUNDS) {
-        alert(
-          "Insufficient funds for the transaction. Please fund your account."
-        );
-      } else if (error.code === ethers.errors.NONCE_EXPIRED) {
-        alert("Transaction nonce expired. Please try again.");
+        alert("Insufficient funds. Please add funds to your wallet.");
+      } else if (error.code === ethers.errors.ACTION_REJECTED) {
+        alert("Transaction was rejected by user.");
+      } else if (error.message.includes("insufficient funds")) {
+        alert("Insufficient balance for gas fees.");
+      } else if (error.message.includes("nonce")) {
+        alert("Transaction nonce issue. Try resetting your MetaMask account.");
       } else {
-        alert("An error occurred: " + error.message);
+        alert(`Transaction failed: ${error.message}`);
       }
+
+      return {
+        success: false,
+        error: error.message,
+      };
     }
   };
-
   const fetchNFTs = async () => {
     try {
       const provider = new ethers.providers.JsonRpcProvider(
@@ -261,25 +426,41 @@ export const NFTMarketplaceProvider = ({ children }) => {
         data.map(
           async ({ tokenId, seller, owner, price: unformattedPrice }) => {
             const tokenURI = await contract.tokenURI(tokenId);
+            try {
+              const {
+                data: { name, description, image },
+              } = await axios.get(tokenURI);
+              const price = ethers.utils.formatUnits(
+                unformattedPrice.toString(),
+                "ether"
+              );
 
-            const {
-              data: { name, description, image },
-            } = await axios.get(tokenURI);
-            const price = ethers.utils.formatUnits(
-              unformattedPrice.toString(),
-              "ether"
-            );
-
-            return {
-              tokenId: tokenId.toNumber(),
-              seller,
-              owner,
-              price,
-              name,
-              description,
-              image,
-              tokenURI,
-            };
+              return {
+                tokenId: tokenId.toNumber(),
+                seller,
+                owner,
+                price,
+                name,
+                description,
+                image,
+                tokenURI,
+              };
+            } catch (ipfsError) {
+              console.error("Error fetching token URI data:", ipfsError);
+              return {
+                tokenId: tokenId.toNumber(),
+                seller,
+                owner,
+                price: ethers.utils.formatUnits(
+                  unformattedPrice.toString(),
+                  "ether"
+                ),
+                name: "Error",
+                description: "Error fetching metadata",
+                image: "",
+                tokenURI,
+              };
+            }
           }
         )
       );
@@ -301,7 +482,6 @@ export const NFTMarketplaceProvider = ({ children }) => {
         data.map(
           async ({ tokenId, seller, owner, price: unformattedPrice }) => {
             const tokenURI = await contract.tokenURI(tokenId);
-
             const {
               data: { name, description, image },
             } = await axios.get(tokenURI);
@@ -331,9 +511,16 @@ export const NFTMarketplaceProvider = ({ children }) => {
 
   const buyNFT = async (nft) => {
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const web3Modal = new Web3modal();
+      const connection = await web3Modal.connect();
+      const provider = new ethers.providers.Web3Provider(connection);
       const signer = provider.getSigner();
-      const contract = fetchContract(signer);
+      const contract = new ethers.Contract(
+        nftmarketplaceaddress,
+        nftmarketplaceABI,
+        signer
+      );
+
       const price = ethers.utils.parseUnits(nft.price.toString(), "ether");
 
       const transaction = await contract.createMarketSale(nft.tokenId, {
@@ -524,6 +711,36 @@ export const NFTMarketplaceProvider = ({ children }) => {
       return data;
     } catch (error) {
       console.error("Error during auction fetching:", error);
+    }
+  };
+
+  // Hàm cập nhật hash IPFS cho người dùng
+  const setUserIPFSHash = async (ipfsHash) => {
+    try {
+      const contract = await connectWithContract();
+      const transaction = await contract.setUserIPFSHash(ipfsHash);
+      const receipt = await transaction.wait();
+
+      if (receipt.status === 1) {
+        alert("IPFS Hash updated successfully!");
+      } else {
+        alert("Failed to update IPFS hash.");
+      }
+    } catch (error) {
+      console.error("Error updating user IPFS hash:", error);
+      alert("Error updating IPFS hash.");
+    }
+  };
+
+  // Hàm lấy hash IPFS của người dùng
+  const getUserIPFSHash = async (userAddress) => {
+    try {
+      const contract = await connectWithContract();
+      const ipfsHash = await contract.getUserIPFSHash(userAddress);
+      return ipfsHash;
+    } catch (error) {
+      console.error("Error fetching user IPFS hash:", error);
+      return null;
     }
   };
 

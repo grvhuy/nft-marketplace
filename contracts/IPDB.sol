@@ -5,19 +5,21 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract IPDB is Ownable {
-    string private dbState;
+contract IPDB {
+    // Mapping từ địa chỉ người dùng đến IPFS hash của họ
+    mapping(address => string) private userProfiles;
 
-    event dbUpdated(string newCid);
+    // Event khi profile được cập nhật
+    event ProfileUpdated(address indexed user, string newProfileHash);
 
-    constructor() Ownable(msg.sender) {}
-
-    function update(string memory cid) public onlyOwner {
-        dbState = cid;
-        emit dbUpdated(cid);
+    // Cập nhật hoặc tạo mới profile
+    function setProfile(string memory _profileHash) public {
+        userProfiles[msg.sender] = _profileHash;
+        emit ProfileUpdated(msg.sender, _profileHash);
     }
 
-    function getState() public view returns (string memory) {
-        return dbState;
+    // Lấy profile hash của một địa chỉ
+    function getProfile(address _user) public view returns (string memory) {
+        return userProfiles[_user];
     }
 }

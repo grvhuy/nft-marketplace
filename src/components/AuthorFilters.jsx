@@ -17,7 +17,7 @@ const AuthorFilters = (props) => {
   return (
     <div className="flex items-center justify-between p-4 space-x-4">
       <div className="flex space-x-2">
-        {["Collectibles", "Created", "Liked", "Following", "Followers"].map((filter) => (
+        {["Collectibles", "Created", "Following", "Followers"].map((filter) => (
           <button
             key={filter}
             // onClick={() => handleFilterClick(filter)}

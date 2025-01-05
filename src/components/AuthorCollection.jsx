@@ -2,18 +2,20 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React from "react";
+import Spinner from "../components/Spinner";
 
-const testURL =
-  "https://scontent.fsgn19-1.fna.fbcdn.net/v/t1.15752-9/462534232_1052853119969676_1093995911813386268_n.png?_nc_cat=107&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeEl1Qfs58HCWe2vceHG4g-mPXxybZtGEkQ9fHJtm0YSRGKSih6lL5jXoclQU3lkdGSA1Hn845yjjv6oQRBI2Fc2&_nc_ohc=4EbyBoIIdFAQ7kNvgEi68R7&_nc_ht=scontent.fsgn19-1.fna&_nc_gid=AhB9PvgR8Gn3nVDNfCJZGg6&oh=03_Q7cD1QF0WIPIJ7_PmHR1xjGbVTmY2m5MUe9rl4xca8bcUNvQhw&oe=67300766";
-
-const NFTCard = ({tokenId, image, name, timeLeft, price }) => {
+const NFTCard = ({ tokenId, image, name, timeLeft, price }) => {
+  useEffect(() => {
+    console.log("NFTCard", tokenId, image, name, timeLeft, price);
+  }, []);
 
   const router = useRouter();
 
   return (
-    <div onClick={
-      () => router.push(`assets/${tokenId}`)
-    } className="bg-slate-300 rounded-lg shadow-lg p-4 w-64 mt-4 transform transition-transform duration-200 hover:scale-95 cursor-pointer">
+    <div
+      onClick={() => router.push(`/assets/${tokenId}`)}
+      className="bg-slate-300 rounded-lg shadow-lg p-4 w-64 mt-4 transform transition-transform duration-200 hover:scale-95 cursor-pointer"
+    >
       <div className="relative">
         <img
           src={image}
@@ -21,7 +23,13 @@ const NFTCard = ({tokenId, image, name, timeLeft, price }) => {
           className="w-full h-48 object-cover rounded-lg"
         />
         <div className="absolute top-2 left-2 bg-white p-1 rounded-full">
-          <Image src={image} alt="icon" className="w-4 h-4" fill sizes="100vw" />
+          <Image
+            src={image}
+            alt="icon"
+            className="w-4 h-4"
+            fill
+            sizes="100vw"
+          />
         </div>
         {/* <div className="absolute top-2 right-2 bg-white p-1 rounded-full">
           <span className="text-sm"> ❤️</span>
@@ -46,86 +54,32 @@ const NFTCard = ({tokenId, image, name, timeLeft, price }) => {
 };
 
 const AuthorCollection = (props) => {
-  const nfts = [
-    {
-      image: "path/to/image1.jpg",
-      name: "Clone #1",
-      bid: "15.000",
-      timeLeft: "1 hour",
-      likes: 22,
-    },
-    {
-      image: "path/to/image2.jpg",
-      name: "Clone #2",
-      bid: "20.000",
-      timeLeft: "2 hours",
-      likes: 15,
-    },
-    {
-      image: "path/to/image3.jpg",
-      name: "Clone #3",
-      bid: "25.000",
-      timeLeft: "3 hours",
-      likes: 10,
-    },
-    {
-      image: "path/to/image4.jpg",
-      name: "Clone #4",
-      bid: "30.000",
-      timeLeft: "4 hours",
-      likes: 5,
-    },
-    {
-      image: "path/to/image5.jpg",
-      name: "Clone #5",
-      bid: "35.000",
-      timeLeft: "5 hours",
-      likes: 2,
-    },
-    {
-      image: "path/to/image6.jpg",
-      name: "Clone #6",
-      bid: "40.000",
-      timeLeft: "6 hours",
-      likes: 1,
-    },
-    {
-      image: "path/to/image7.jpg",
-      name: "Clone #7",
-      bid: "45.000",
-      timeLeft: "7 hours",
-      likes: 0,
-    },
-    {
-      image: "path/to/image8.jpg",
-      name: "Clone #8",
-      bid: "50.000",
-      timeLeft: "8 hours",
-      likes: 0,
-    },
-    {
-      image: "path/to/image9.jpg",
-      name: "Clone #9",
-      bid: "55.000",
-      timeLeft: "9 hours",
-      likes: 0,
-    },
-    {
-      image: "path/to/image10.jpg",
-      name: "Clone #10",
-      bid: "60.000",
-      timeLeft: "10 hours",
-      likes: 0,
-    }
-
-    // Add more NFT objects here
-  ];
+  if (!props.nfts) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 overflow-x-auto p-4">
+        <Spinner />
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 overflow-x-auto p-4">
-      {props.nfts && props.nfts.map((nft, index) => (
-        <NFTCard key={index} {...nft} />
-      ))}
+      {props.nfts &&
+        props.walletAddress &&
+        props.nfts.map((nft, index) => {
+          if (props.walletAddress === nft.seller.toLowerCase()) {
+            return (
+              <NFTCard
+                key={index}
+                tokenId={nft.tokenId}
+                image={nft.image}
+                name={nft.name}
+                timeLeft={nft.timeLeft}
+                price={nft.price}
+              />
+            );
+          }
+        })}
     </div>
   );
 };

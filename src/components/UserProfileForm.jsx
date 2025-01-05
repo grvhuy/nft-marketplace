@@ -1,12 +1,22 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Facebook, Instagram, TwitterIcon } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { updateUser } from "@/lib/rxDB";
+import NFTMarketplaceContext from "../../Context/NFTMarketplaceContext";
+import Spinner from "./Spinner";
 
 const UserProfileForm = ({ userData, walletAddress }) => {
+  const { uploadFile, currentAccount } = React.useContext(
+    NFTMarketplaceContext
+  );
+
   const [popupMessage, setPopupMessage] = useState(null);
+  const [previewImage, setPreviewImage] = useState(
+    "https://placehold.co/100x400?text=Preview+Image"
+  );
+  const [loading, setLoading] = useState(false);
   const {
     register,
     handleSubmit,
@@ -28,6 +38,7 @@ const UserProfileForm = ({ userData, walletAddress }) => {
       // Optionally set the profile image if it's provided
       if (userData.profileImage) {
         setValue("profileImage", userData.profileImage);
+        setPreviewImage(userData.profileImage);
       }
     }
   }, [userData, setValue]);
@@ -57,16 +68,28 @@ const UserProfileForm = ({ userData, walletAddress }) => {
     // Add more functionality here (e.g., API call)
   };
 
-  const onDrop = (acceptedFiles) => {
-    const file = acceptedFiles[0];
-    // Set the file directly in the form
-    setValue(
-      "profileImage",
-      Object.assign(file, {
-        preview: URL.createObjectURL(file),
-      })
-    );
-  };
+  // const onDrop = (acceptedFiles) => {
+  //   const file = acceptedFiles[0];
+  //   // Set the file directly in the form
+  //   setValue(
+  //     "profileImage",
+  //     Object.assign(file, {
+  //       preview: URL.createObjectURL(file),
+  //     })
+  //   );
+  // };
+
+  const onDrop = useCallback(async (acceptedFiles, rejectedFiles) => {
+    setLoading(true);
+    if (rejectedFiles.length > 0) {
+      console.error("Rejected files:", rejectedFiles);
+      return;
+    }
+    const url = await uploadFile(acceptedFiles[0]);
+    setValue("profileImage", url);
+    setPreviewImage(url);
+    setLoading(false);
+  });
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
@@ -145,11 +168,20 @@ const UserProfileForm = ({ userData, walletAddress }) => {
           )}
           <div>
             {getValues("profileImage") ? (
-              <img
-                src={getValues("profileImage")?.preview}
-                alt="Profile"
-                className="w-full h-32 object-cover rounded-lg"
-              />
+              loading ? (
+                <div className="flex flex-col items-center justify-center min-h-96">
+                  <Spinner />
+                  <p className="text-white text-sm font-medium mt-2">
+                    One second and you good to go ...
+                  </p>
+                </div>
+              ) : (
+                <img
+                  src={previewImage}
+                  alt="Preview Image"
+                  className="w-32 h-32 object-cover rounded-full mx-auto"
+                />
+              )
             ) : (
               <p className="text-gray-500">
                 Drag & drop a profile image here, or click to select one

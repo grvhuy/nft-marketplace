@@ -2,10 +2,16 @@
 
 import Image from "next/image";
 import { shortenAddress } from "../../../utils/convert";
+import { useRouter } from "next/navigation";
 
 const CollectionCard = (props) => {
+  const router = useRouter();
+
   return (
-    <div className="transition-transform transform hover:scale-95 duration-300">
+    <div
+      onClick={() => router.push(`/my-collections/edit/${props.name}`)}
+      className="transition-transform transform hover:scale-95 duration-300"
+    >
       <div className="min-w-1/3 mr-4 shadow-md bg-[#3b3b3b] opacity-90 hover:opacity-100 my-4 rounded-2xl">
         <Image
           src={props.image}
@@ -27,10 +33,10 @@ const CollectionCard = (props) => {
               <h3 className="text-white">&lt; 0.01</h3>
             </div> */}
             <div>
-              <h3 className="text-white text-sm">Total Volume</h3>
-              <h3 className="text-white">{
-                props.nfts.reduce((acc, nft) => acc + nft.price, 0)
-              } ETH</h3>
+              <h3 className="text-white text-sm">Total Volumess</h3>
+              <h3 className="text-white">
+                {props.nfts.reduce((acc, nft) => acc + nft.price, 0)} ETH
+              </h3>
             </div>
           </div>
         </div>

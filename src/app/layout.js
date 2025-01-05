@@ -2,6 +2,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { NFTMarketplaceProvider } from "../../Context/NFTMarketplaceContext";
 import { IPDBProvider } from "../../Context/IPDBContext";
+import { GunDBProvider } from "../../Context/GunContext";
 import Header from "../components/layout/header";
 import Footer from "../components/layout/footer";
 import { Work_Sans } from "next/font/google";
@@ -31,11 +32,11 @@ export default function RootLayout({ children }) {
         className={`${font.className} ${geistMono.variable} antialiased bg-[#2b2b2b]`}
       >
         <NFTMarketplaceProvider>
-          <IPDBProvider>
-            <Header />
-            {children}
-            <Footer />
-          </IPDBProvider>
+            {/* <IPDBProvider> */}
+              <Header />
+              {children}
+              <Footer />
+            {/* </IPDBProvider> */}
         </NFTMarketplaceProvider>
       </body>
     </html>

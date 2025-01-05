@@ -15,6 +15,9 @@ const nextConfig = {
         hostname: "blue-wonderful-antelope-164.mypinata.cloud",
       },
       {
+        hostname: "jade-legislative-fowl-319.mypinata.cloud",
+      },
+      {
         hostname: "scontent.fsgn19-1.fna.fbcdn.net", 
       },
       {
@@ -32,6 +35,11 @@ const nextConfig = {
         source: "/api/:path*",
         destination: "https://cblue-wonderful-antelope-164.mypinata.cloud/:path*",
       },
+      {
+        source: "/api/:path*",
+        destination: "https://jade-legislative-fowl-319.mypinata.cloud/:path*",
+      },
+
 
     ];
   },

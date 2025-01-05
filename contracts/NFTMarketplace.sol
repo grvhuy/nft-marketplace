@@ -71,6 +71,14 @@ contract NFTMarketplace is ERC721URIStorage {
         _mint(msg.sender, newTokenId);
         _setTokenURI(newTokenId, tokenURI);
         createMarketItem(newTokenId, price);
+        emit Provenance(
+            newTokenId,
+            address(0),
+            msg.sender,
+            0,
+            "Minted",
+            block.timestamp
+        );
         return newTokenId;
     }
 
@@ -87,6 +95,15 @@ contract NFTMarketplace is ERC721URIStorage {
             payable(address(this)),
             price,
             false
+        );
+
+        emit Provenance(
+            tokenId,
+            msg.sender,
+            address(this),
+            price,
+            "Listed",
+            block.timestamp
         );
 
         _transfer(msg.sender, address(this), tokenId);
@@ -114,7 +131,14 @@ contract NFTMarketplace is ERC721URIStorage {
         idToMarketItem[tokenId].seller = payable(msg.sender);
         idToMarketItem[tokenId].owner = payable(address(this));
         _itemsSold--;
-
+        emit Provenance(
+            tokenId,
+            msg.sender,
+            address(this),
+            price,
+            "Relisted",
+            block.timestamp
+        );
         _transfer(msg.sender, address(this), tokenId);
     }
 
@@ -136,7 +160,14 @@ contract NFTMarketplace is ERC721URIStorage {
         _transfer(address(this), msg.sender, tokenId);
         payable(owner).transfer(listingPrice);
         payable(seller).transfer(msg.value);
-
+        emit Provenance(
+            tokenId,
+            address(this),
+            msg.sender,
+            price,
+            "Sold",
+            block.timestamp
+        );
         // tokenTransactionHistory[tokenId].push(Transaction(msg.sender, seller, price, block.timestamp));
         // emit TransactionCompleted(tokenId, msg.sender, seller, price, block.timestamp);
     }
@@ -225,19 +256,19 @@ contract NFTMarketplace is ERC721URIStorage {
         return items;
     }
 
-    // function fetchMarketItemsByIds(
-    //     uint256[] memory tokenIds
-    // ) public view returns (MarketItem[] memory) {
-    //     uint256 tokenCount = tokenIds.length;
-    //     MarketItem[] memory items = new MarketItem[](tokenCount);
+    function fetchMarketItemsByIds(
+        uint256[] memory tokenIds
+    ) public view returns (MarketItem[] memory) {
+        uint256 tokenCount = tokenIds.length;
+        MarketItem[] memory items = new MarketItem[](tokenCount);
 
-    //     for (uint256 i = 0; i < tokenCount; i++) {
-    //         uint256 tokenId = tokenIds[i];
-    //         items[i] = idToMarketItem[tokenId];
-    //     }
+        for (uint256 i = 0; i < tokenCount; i++) {
+            uint256 tokenId = tokenIds[i];
+            items[i] = idToMarketItem[tokenId];
+        }
 
-    //     return items;
-    // }
+        return items;
+    }
 
     function fetchMarketItemById(
         uint256 tokenId
@@ -245,30 +276,30 @@ contract NFTMarketplace is ERC721URIStorage {
         return idToMarketItem[tokenId];
     }
 
-    // function fetchNFTsByOwner(
-    //     address ownerAddress
-    // ) public view returns (MarketItem[] memory) {
-    //     uint256 totalItemCount = _tokenIds;
-    //     uint256 itemCount = 0;
-    //     uint256 currentIndex = 0;
+    function fetchNFTsByOwner(
+        address ownerAddress
+    ) public view returns (MarketItem[] memory) {
+        uint256 totalItemCount = _tokenIds;
+        uint256 itemCount = 0;
+        uint256 currentIndex = 0;
 
-    //     for (uint256 i = 0; i < totalItemCount; i++) {
-    //         if (idToMarketItem[i + 1].owner == ownerAddress) {
-    //             itemCount += 1;
-    //         }
-    //     }
+        for (uint256 i = 0; i < totalItemCount; i++) {
+            if (idToMarketItem[i + 1].owner == ownerAddress) {
+                itemCount += 1;
+            }
+        }
 
-    //     MarketItem[] memory items = new MarketItem[](itemCount);
-    //     for (uint256 i = 0; i < totalItemCount; i++) {
-    //         if (idToMarketItem[i + 1].owner == ownerAddress) {
-    //             uint256 currentId = i + 1;
-    //             MarketItem storage currentItem = idToMarketItem[currentId];
-    //             items[currentIndex] = currentItem;
-    //             currentIndex += 1;
-    //         }
-    //     }
-    //     return items;
-    // }
+        MarketItem[] memory items = new MarketItem[](itemCount);
+        for (uint256 i = 0; i < totalItemCount; i++) {
+            if (idToMarketItem[i + 1].owner == ownerAddress) {
+                uint256 currentId = i + 1;
+                MarketItem storage currentItem = idToMarketItem[currentId];
+                items[currentIndex] = currentItem;
+                currentIndex += 1;
+            }
+        }
+        return items;
+    }
 
     // function fetchNFTsListedBySeller(
     //     address sellerAddress
@@ -355,6 +386,14 @@ contract NFTMarketplace is ERC721URIStorage {
             true
         );
 
+        emit Provenance(
+            tokenId,
+            msg.sender,
+            address(this),
+            startingPrice,
+            "AuctionStarted",
+            block.timestamp
+        );
         _transfer(msg.sender, address(this), tokenId);
         emit AuctionCreated(
             tokenId,
@@ -392,11 +431,20 @@ contract NFTMarketplace is ERC721URIStorage {
             _itemsSold++;
 
             _transfer(address(this), auction.highestBidder, tokenId);
+
             auction.seller.transfer(auction.highestBid);
             emit AuctionEnded(
                 tokenId,
                 auction.highestBidder,
                 auction.highestBid
+            );
+            emit Provenance(
+                tokenId,
+                address(this),
+                auction.highestBidder,
+                auction.highestBid,
+                "AuctionEnded",
+                block.timestamp
             );
         } else {
             _transfer(address(this), auction.seller, tokenId);
@@ -431,5 +479,29 @@ contract NFTMarketplace is ERC721URIStorage {
             }
         }
         return activeAuctions;
+    }
+
+    event Provenance(
+        uint256 indexed tokenId,
+        address indexed from,
+        address indexed to,
+        uint256 price,
+        string action,
+        uint256 timestamp
+    );
+
+    // User
+    mapping(address => string) private userIPFSHash;
+
+    function setUserIPFSHash(string memory ipfsHash) public {
+        userIPFSHash[msg.sender] = ipfsHash;
+    }
+
+    function getUserIPFSHash(address userAddress)
+        public
+        view
+        returns (string memory)
+    {
+        return userIPFSHash[userAddress];
     }
 }

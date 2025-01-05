@@ -252,6 +252,15 @@ const UploadNFT = () => {
           }}
           title="Create and List"
         />
+                <MyButton
+          onClick={() => {
+            console.log(formData);
+
+          }}
+          title="log"
+        />
+
+
       </div>
     </div>
   );

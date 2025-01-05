@@ -4,7 +4,7 @@ import { RxDBDevModePlugin } from "rxdb/plugins/dev-mode";
 import { getRxStorageDexie } from "rxdb/plugins/storage-dexie";
 import { RxDBUpdatePlugin } from "rxdb/plugins/update";
 import { RxDBJsonDumpPlugin } from "rxdb/plugins/json-dump";
-import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder'
+import { RxDBQueryBuilderPlugin } from "rxdb/plugins/query-builder";
 
 import { Dexie } from "dexie";
 import { pinata } from "../../utils/config";
@@ -31,12 +31,18 @@ export const databaseExists = async (dbName) => {
   }
 };
 
+
 export const exportDatabase = async () => {
   const db = await getDatabase();
   const exported = await db.exportJSON();
   console.log(exported);
   return exported;
 };
+
+export const importDatabase = async (data) => {
+  const db = await getDatabase();
+  await db.importJSON(data);
+}
 
 export const getDatabase = async () => {
   if (dbInstance) {
@@ -143,6 +149,12 @@ export const getUsers = async () => {
 };
 
 export const addUser = async (walletAddress) => {
+
+  if (!window.indexedDB) {
+    console.error("IndexedDB is not supported in this environment");
+    return [];
+  }
+
   const db = await getDatabase();
   const isExist = await db.users.findOne(walletAddress).exec();
 
@@ -176,7 +188,7 @@ export const getUserByWalletAddress = async (walletAddress) => {
       console.warn("Collection 'users' does not exist yet");
       return [];
     }
-    
+
     // // Log toàn bộ documents trong collection
     // const allUsers = await db.users.find().exec();
     // console.log("ALL USERS:", allUsers);
@@ -197,14 +209,14 @@ export const getUserByWalletAddress = async (walletAddress) => {
 
     const userByFindOne = await db.users
       .findOne()
-      .where('walletAddress')
+      .where("walletAddress")
       .eq(walletAddress.toLowerCase())
       .exec();
 
     // console.log("User by .find():", userByFind);
     console.log("User by .findOne():", userByFindOne);
 
-    return userByFindOne || userByFind || null;
+    return userByFindOne || null;
   } catch (error) {
     console.error("Detailed Error fetching user:", error);
     return null;
@@ -233,133 +245,261 @@ export const updateUser = async (walletAddress, data) => {
   }
 };
 
+// export const followUser = async (walletAddress, followAddress) => {
+//   try {
+//     const db = await getDatabase();
+//     const user = await db.users
+//       .findOne({
+//         selector: { walletAddress },
+//       })
+//       .exec();
+
+//     const followedUser = await db.users
+//       .findOne({
+//         selector: { walletAddress: followAddress },
+//       })
+//       .exec();
+
+//     if (!followedUser) {
+//       console.error(`User with wallet address ${followAddress} not found`);
+//       return null;
+//     }
+
+//     if (!user) {
+//       console.error(`User with wallet address ${walletAddress} not found`);
+//       return null;
+//     }
+
+//     // Prevent duplicate follows
+//     if (
+//       !user.following.includes(followAddress) &&
+//       !followedUser.followers.includes(walletAddress)
+//     ) {
+//       const following = [...user.following, followAddress];
+//       const followers = [...followedUser.followers, walletAddress];
+//       const updatedUser = await user.update({
+//         $set: { following },
+//       });
+//       const updatedFollowedUser = await followedUser.update({
+//         $set: { followers },
+//       });
+//       return {
+//         user: updatedUser,
+//         followedUser: updatedFollowedUser,
+//       };
+//     }
+
+//     return {
+//       user,
+//       followedUser,
+//     };
+//   } catch (error) {
+//     console.error("Error following user:", error);
+//     throw error;
+//   }
+// };
+
+// export const checkFollow = async (walletAddress, followAddress) => {
+//   // Kiểm tra trường hợp đặc biệt
+//   if (!walletAddress || !followAddress) {
+//     console.log("Missing wallet addresses for follow check");
+//     return false;
+//   }
+
+//   if (walletAddress === followAddress) {
+//     return false;
+//   }
+
+//   try {
+//     // Loại bỏ kiểm tra window.indexedDB vì RxDB đã xử lý storage
+
+//     const db = await getDatabase();
+//     const user = await db.users
+//       .findOne({
+//         selector: { walletAddress },
+//       })
+//       .exec();
+
+//     // Nếu không tìm thấy user, trả về false thay vì null
+//     if (!user) {
+//       console.error(`User with wallet address ${walletAddress} not found`);
+//       return false;
+//     }
+
+//     // Kiểm tra following list
+//     const isFollowing = user.following.includes(followAddress);
+//     console.log(`Follow check result: ${isFollowing}`);
+//     return isFollowing;
+//   } catch (error) {
+//     console.error("Error checking follow:", error);
+//     return false; // Trả về false thay vì throw error
+//   }
+// };
+
+
+
+// export const unfollowUser = async (walletAddress, followAddress) => {
+//   try {
+//     const db = await getDatabase();
+//     const user = await db.users
+//       .findOne({
+//         selector: { walletAddress },
+//       })
+//       .exec();
+
+//     const followedUser = await db.users
+//       .findOne({
+//         selector: { walletAddress: followAddress },
+//       })
+//       .exec();
+
+//     if (!user) {
+//       console.error(`User with wallet address ${walletAddress} not found`);
+//       return;
+//     }
+
+//     if (!followedUser) {
+//       console.error(`User with wallet address ${followAddress} not found`);
+//       return;
+//     }
+
+//     const following = user.following.filter(
+//       (address) => address !== followAddress
+//     );
+
+//     const followers = followedUser.followers.filter(
+//       (address) => address !== walletAddress
+//     );
+
+//     const updatedUser = await user.update({
+//       $set: { following },
+//     });
+
+//     const updatedFollowedUser = await followedUser.update({
+//       $set: { followers },
+//     });
+
+//     return {
+//       user: updatedUser,
+//       followedUser: updatedFollowedUser,
+//     };
+//   } catch (error) {
+//     console.error("Error unfollowing user:", error);
+//     throw error;
+//   }
+// };
+
 export const followUser = async (walletAddress, followAddress) => {
+  if (!walletAddress || !followAddress || walletAddress === followAddress) {
+    console.error("Invalid wallet addresses for follow");
+    return null;
+  }
+
   try {
     const db = await getDatabase();
     const user = await db.users
-      .findOne({
-        selector: { walletAddress },
-      })
+      .findOne({ selector: { walletAddress } })
       .exec();
 
     const followedUser = await db.users
-      .findOne({
-        selector: { walletAddress: followAddress },
-      })
+      .findOne({ selector: { walletAddress: followAddress } })
       .exec();
 
-    if (!followedUser) {
-      console.error(`User with wallet address ${followAddress} not found`);
+    if (!user || !followedUser) {
+      console.error(`User not found: ${walletAddress} or ${followAddress}`);
       return null;
     }
 
-    if (!user) {
-      console.error(`User with wallet address ${walletAddress} not found`);
-      return null;
-    }
+    if (!user.following.includes(followAddress)) {
+      // Update "following" list for the current user
+      const updatedFollowing = [...user.following, followAddress];
+      await user.update({ $set: { following: updatedFollowing } });
 
-    // Prevent duplicate follows
-    if (
-      !user.following.includes(followAddress) &&
-      !followedUser.followers.includes(walletAddress)
-    ) {
-      const following = [...user.following, followAddress];
-      const followers = [...followedUser.followers, walletAddress];
-      const updatedUser = await user.update({
-        $set: { following },
-      });
-      const updatedFollowedUser = await followedUser.update({
-        $set: { followers },
-      });
-      return {
-        user: updatedUser,
-        followedUser: updatedFollowedUser,
-      };
-    }
+      // Update "followers" list for the followed user
+      const updatedFollowers = [...followedUser.followers, walletAddress];
+      await followedUser.update({ $set: { followers: updatedFollowers } });
 
-    return {
-      user,
-      followedUser,
-    };
+      console.log(`User ${walletAddress} followed ${followAddress}`);
+      return { success: true };
+    } else {
+      console.warn("User is already following the target user");
+      return { success: false, message: "Already following" };
+    }
   } catch (error) {
     console.error("Error following user:", error);
     throw error;
   }
 };
 
-export const checkFollow = async (walletAddress, followAddress) => {
-  if (walletAddress === followAddress) {
-    return;
+export const unfollowUser = async (walletAddress, followAddress) => {
+  if (!walletAddress || !followAddress || walletAddress === followAddress) {
+    console.error("Invalid wallet addresses for unfollow");
+    return null;
   }
 
   try {
     const db = await getDatabase();
     const user = await db.users
-      .findOne({
-        selector: { walletAddress },
-      })
+      .findOne({ selector: { walletAddress } })
       .exec();
 
-    if (!user) {
-      console.error(`User with wallet address ${walletAddress} not found`);
+    const followedUser = await db.users
+      .findOne({ selector: { walletAddress: followAddress } })
+      .exec();
+
+    if (!user || !followedUser) {
+      console.error(`User not found: ${walletAddress} or ${followAddress}`);
       return null;
     }
 
-    return user.following.includes(followAddress);
+    if (user.following.includes(followAddress)) {
+      // Update "following" list for the current user
+      const updatedFollowing = user.following.filter(
+        (address) => address !== followAddress
+      );
+      await user.update({ $set: { following: updatedFollowing } });
+
+      // Update "followers" list for the unfollowed user
+      const updatedFollowers = followedUser.followers.filter(
+        (address) => address !== walletAddress
+      );
+      await followedUser.update({ $set: { followers: updatedFollowers } });
+
+      console.log(`User ${walletAddress} unfollowed ${followAddress}`);
+      return { success: true };
+    } else {
+      console.warn("User is not currently following the target user");
+      return { success: false, message: "Not following" };
+    }
   } catch (error) {
-    console.error("Error checking follow:", error);
+    console.error("Error unfollowing user:", error);
     throw error;
   }
 };
 
-export const unfollowUser = async (walletAddress, followAddress) => {
+export const checkFollow = async (walletAddress, followAddress) => {
+  if (!walletAddress || !followAddress || walletAddress === followAddress) {
+    console.log("Invalid wallet addresses for follow check");
+    return false;
+  }
+
   try {
     const db = await getDatabase();
     const user = await db.users
-      .findOne({
-        selector: { walletAddress },
-      })
-      .exec();
-
-    const followedUser = await db.users
-      .findOne({
-        selector: { walletAddress: followAddress },
-      })
+      .findOne({ selector: { walletAddress } })
       .exec();
 
     if (!user) {
       console.error(`User with wallet address ${walletAddress} not found`);
-      return;
+      return false;
     }
 
-    if (!followedUser) {
-      console.error(`User with wallet address ${followAddress} not found`);
-      return;
-    }
-
-    const following = user.following.filter(
-      (address) => address !== followAddress
-    );
-
-    const followers = followedUser.followers.filter(
-      (address) => address !== walletAddress
-    );
-
-    const updatedUser = await user.update({
-      $set: { following },
-    });
-
-    const updatedFollowedUser = await followedUser.update({
-      $set: { followers },
-    });
-
-    return {
-      user: updatedUser,
-      followedUser: updatedFollowedUser,
-    };
+    const isFollowing = user.following.includes(followAddress);
+    console.log(`Check follow result for ${walletAddress} -> ${followAddress}: ${isFollowing}`);
+    return isFollowing;
   } catch (error) {
-    console.error("Error unfollowing user:", error);
-    throw error;
+    console.error("Error checking follow:", error);
+    return false;
   }
 };
 
@@ -383,7 +523,7 @@ export const getFollowers = async (walletAddress) => {
         selector: { followers: walletAddress },
       })
       .exec();
-    
+
     return {
       user: user,
       followers: users,
@@ -408,7 +548,7 @@ export const getFollowing = async (walletAddress) => {
     console.error("Error getting following:", error);
     throw error;
   }
-}
+};
 
 export const addAlbum = async (walletAddress, albumname, descript, image) => {
   try {
@@ -441,6 +581,28 @@ export const addAlbum = async (walletAddress, albumname, descript, image) => {
   }
 };
 
+export const editAlbum = async (albumname, descript, image) => {
+  try {
+    const db = await getDatabase();
+    const album = await db.albums
+      .findOne({
+        selector: { albumname },
+      })
+      .exec();
+
+    if (!album) {
+      console.error(`Album ${albumname} not found`);
+      return null;
+    }
+
+    const updatedAlbum = await album.update({ $set: { descript, image } });
+    return updatedAlbum;
+  } catch (error) {
+    console.error("Error editing album:", error);
+    throw error;
+  }
+}
+
 export const getAlbums = async () => {
   try {
     const db = await getDatabase();
@@ -454,7 +616,17 @@ export const getAlbums = async () => {
 
 export const getAlbumByName = async (albumname) => {
   try {
+    if (!window.indexedDB) {
+      console.error("IndexedDB is not supported in this environment");
+      return [];
+    }
+
     const db = await getDatabase();
+
+    if (!db.albums) {
+      console.warn("Collection 'albums' does not exist yet");
+      return [];
+    }
     const album = await db.albums
       .findOne({
         selector: { albumname },
@@ -470,9 +642,11 @@ export const getAlbumByName = async (albumname) => {
 export const getAlbumsByOwnerAddress = async (walletAddress) => {
   try {
     const db = await getDatabase();
-    const albums = await db.albums.find({
+    const albums = await db.albums
+      .find({
         selector: { owner: walletAddress },
-      }).exec();
+      })
+      .exec();
     return albums;
   } catch (error) {
     console.error(`Error getting albums for ${walletAddress}:`, error);

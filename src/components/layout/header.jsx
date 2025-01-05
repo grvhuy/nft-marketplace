@@ -20,7 +20,7 @@ const Header = () => {
     // getUsers().then((res) => {
     //   console.log("user", res);
     // });
-  }, [currentAccount])
+  }, [currentAccount]);
 
   // useEffect(() => {
   //   const initializeDb = async () => {
@@ -88,20 +88,28 @@ const Header = () => {
             </li>
             <li className="max-lg:border-b border-gray-300 max-lg:py-3 px-3">
               <a
-                href="/nft"
+                href="/users"
                 className="hover:text-[#007bff] text-gray-500 block font-semibold text-[15px]"
               >
-                NFT details
+                Recent Users
               </a>
             </li>
             <li className="max-lg:border-b border-gray-300 max-lg:py-3 px-3">
+              <a
+                href="/explorer"
+                className="hover:text-[#007bff] text-gray-500 block font-semibold text-[15px]"
+              >
+                Explorer
+              </a>
+            </li>
+            {/* <li className="max-lg:border-b border-gray-300 max-lg:py-3 px-3">
               <a
                 href="/upload"
                 className="hover:text-[#007bff] text-gray-500 block font-semibold text-[15px]"
               >
                 Upload
               </a>
-            </li>
+            </li> */}
             <li className="max-lg:border-b border-gray-300 max-lg:py-3 px-3">
               <a
                 href="/collections"
@@ -147,7 +155,7 @@ const Header = () => {
                       <h2 className="font-bold text-xl p-4 flex items-center">
                         {shortenAddress(currentAccount)}{" "}
                         <Copy
-                        size={16}
+                          size={16}
                           className="cursor-pointer transform hover:scale-110 mx-1"
                           onClick={() => {
                             navigator.clipboard.writeText(currentAccount);

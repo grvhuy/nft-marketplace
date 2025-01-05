@@ -57,11 +57,17 @@ const NFTDetailsPage = () => {
     });
   }, []);
 
-
-  const handleBuyNFT = () => {
-    buyNFT(nft).then((res) => console.log(res));
-    // console.log(nft);
-  }
+  const handleBuyNFT = async () => {
+    if (!nft || !nft.price) {
+      console.error("NFT or price is not available.");
+      return;
+    }
+    try {
+      await buyNFT(nft);
+    } catch (error) {
+      console.error("Error buying NFT:", error);
+    }
+  };
 
   return (
     <div className="bg-[#2b2b2b] p-6 rounded-lg shadow-lg mx-20 min-h-screen text-white">
@@ -150,9 +156,10 @@ const NFTDetailsPage = () => {
               <div className="flex flex-col">
                 <span className="text-lg font-semibold">Current Bid</span>
                 <b className="text-2xl font-bold">
-                  {nft.price} ETH{" "}
+                  {nft.price}{" "}
+                  ETH{" "}
                   <span className="text-sm text-gray-400">
-                    (≈ {convertToUSD(nft.price)} USD)
+                    (≈ {convertToUSD(ethers.utils.formatUnits(nft.price.split(".")[0], "ether"))} USD)
                   </span>
                 </b>
               </div>
