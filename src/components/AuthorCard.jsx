@@ -9,9 +9,9 @@ import { FacebookIcon } from "lucide-react";
 const AuthorCard = ({
   userData,
   walletAddress,
-  isFollowing,
-  onFollow,
-  onUnfollow,
+  // isFollowing,
+  // onFollow,
+  // onUnfollow,
 }) => {
   const { currentAccount } = React.useContext(NFTMarketplaceContext);
 
@@ -41,7 +41,7 @@ const AuthorCard = ({
               {userData?.name || "Anonymous User"}
             </h2>
           </div>
-          {walletAddress !== currentAccount && (
+          {/* {walletAddress !== currentAccount && (
             <div className="flex space-x-2">
               {isFollowing ? (
                 <button
@@ -59,7 +59,7 @@ const AuthorCard = ({
                 </button>
               )}
             </div>
-          )}
+          )} */}
         </div>
         <p className="text-white mt-2">{userData?.bio || "No bio available"}</p>
         {userData && (

@@ -64,20 +64,46 @@ const NFTExplorer = ({ web3 }) => {
         }),
       ]);
 
+      // Lấy thông tin thời gian và số tiền giao dịch
+      const addTransactionDetails = async (events) => {
+        return Promise.all(
+          events.map(async (event) => {
+            const block = await web3.eth.getBlock(event.blockNumber);
+            const transaction = await web3.eth.getTransaction(
+              event.transactionHash
+            );
+
+            return {
+              ...event,
+              timestamp: new Date(
+                Number(block.timestamp) * 1000
+              ).toLocaleString(),
+              value: web3.utils.fromWei(transaction.value, "ether"), // Số tiền giao dịch (nếu có)
+            };
+          })
+        );
+      };
+
+      const transferHistory = await addTransactionDetails(transferEvents);
+      const listingHistory = await addTransactionDetails(listingEvents);
+
       const history = [
-        ...transferEvents.map((event) => ({
+        ...transferHistory.map((event) => ({
           type: "Transfer",
           from: event.returnValues.from,
           to: event.returnValues.to,
           blockNumber: event.blockNumber,
           transactionHash: event.transactionHash,
+          timestamp: event.timestamp,
+          value: event.value, // Số tiền giao dịch
         })),
-        ...listingEvents.map((event) => ({
+        ...listingHistory.map((event) => ({
           type: "Listing",
           seller: event.returnValues.seller,
           price: web3.utils.fromWei(event.returnValues.price, "ether"),
           blockNumber: event.blockNumber,
           transactionHash: event.transactionHash,
+          timestamp: event.timestamp,
         })),
       ];
 
@@ -90,6 +116,8 @@ const NFTExplorer = ({ web3 }) => {
         tokenURI,
         history,
       });
+
+      console.log("NFT Data:", item, tokenURI, history);
     } catch (err) {
       console.error("Error fetching NFT data:", err);
       setError("Error fetching NFT data. Please try again.");
@@ -133,11 +161,14 @@ const NFTExplorer = ({ web3 }) => {
               <h4>History:</h4>
               {nftData.history.map((event, idx) => (
                 <div key={idx}>
-                  <p>{event.type}</p>
+                  <p>Type: {event.type}</p>
+                  <p>Block: {event.blockNumber}</p>
+                  <p>Time: {event.timestamp}</p>
                   {event.type === "Transfer" ? (
                     <>
                       <p>From: {event.from}</p>
                       <p>To: {event.to}</p>
+                      <p>Value: {event.value} ETH</p>
                     </>
                   ) : (
                     <p>

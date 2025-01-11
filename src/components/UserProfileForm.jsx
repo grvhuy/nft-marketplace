@@ -1,22 +1,21 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Facebook, Instagram, TwitterIcon } from "lucide-react";
+import { Facebook, InfoIcon, Instagram, TwitterIcon } from "lucide-react";
 import { useDropzone } from "react-dropzone";
-import { updateUser } from "@/lib/rxDB";
 import NFTMarketplaceContext from "../../Context/NFTMarketplaceContext";
 import Spinner from "./Spinner";
+import { shortenAddress } from "../../utils/convert";
 
 const UserProfileForm = ({ userData, walletAddress }) => {
-  const { uploadFile, currentAccount } = React.useContext(
-    NFTMarketplaceContext
-  );
-
+  const { currentAccount, setUserIPFSHash, getUserIPFSHash, uploadFile } =
+    React.useContext(NFTMarketplaceContext);
   const [popupMessage, setPopupMessage] = useState(null);
   const [previewImage, setPreviewImage] = useState(
     "https://placehold.co/100x400?text=Preview+Image"
   );
   const [loading, setLoading] = useState(false);
+  const [ipfsHash, setIpfsHash] = useState(null);
   const {
     register,
     handleSubmit,
@@ -25,27 +24,49 @@ const UserProfileForm = ({ userData, walletAddress }) => {
     getValues,
   } = useForm();
 
-  // Set form values when userData changes or on initial load
   useEffect(() => {
-    if (userData) {
-      setValue("name", userData.name || "");
-      setValue("email", userData.email || "");
-      setValue("bio", userData.bio || "");
-      setValue("facebookLink", userData.facebookLink || "");
-      setValue("instagramLink", userData.instagramLink || "");
-      setValue("twitterLink", userData.twitterLink || "");
-      setValue("walletAddress", walletAddress || "");
-      // Optionally set the profile image if it's provided
-      if (userData.profileImage) {
-        setValue("profileImage", userData.profileImage);
-        setPreviewImage(userData.profileImage);
+    const fetchUserData = async () => {
+      const hash = await getUserIPFSHash(currentAccount);
+      if (!hash) {
+        console.warn("No IPFS hash found for this account.");
+      } else {
+        try {
+          setIpfsHash(hash);
+          const link = `https://${process.env.NEXT_PUBLIC_GATEWAY_URL}/ipfs/${hash}`;
+          const response = await fetch(link);
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          // Populate form fields with fetched user data
+          setValue("name", data.name || "");
+          setValue("email", data.email || "");
+          setValue("bio", data.bio || "");
+          setValue("facebookLink", data.facebookLink || "");
+          setValue("instagramLink", data.instagramLink || "");
+          setValue("twitterLink", data.twitterLink || "");
+          setValue("profileImage", data.profileImage || "");
+
+          // Update the preview image
+          setPreviewImage(data.profileImage || null);
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
       }
+    };
+
+    if (currentAccount) {
+      fetchUserData();
     }
-  }, [userData, setValue]);
+  }, [currentAccount, getUserIPFSHash, setValue]);
 
   const onSubmit = async (data) => {
     try {
-      await updateUser(walletAddress, {
+      console.log("data", data);
+      const userData = {
         name: data.name,
         email: data.email,
         bio: data.bio,
@@ -53,16 +74,38 @@ const UserProfileForm = ({ userData, walletAddress }) => {
         instagramLink: data.instagramLink,
         twitterLink: data.twitterLink,
         profileImage: data.profileImage,
-      }).then((res) => {
-        console.log("updateUser", res);
-        setPopupMessage("Updated successfully!");
-      });
+      };
+
+      const dataToPIN = {
+        pinataMetadata: {
+          name: `${walletAddress}.json`,
+          timestamp: new Date().toISOString(),
+        },
+        pinataContent: userData,
+      };
+
+      const newhash = await fetch(
+        "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataToPIN),
+        }
+      );
+
+      if (newhash.status === 200) {
+        const response = await newhash.json();
+        await setUserIPFSHash(response.IpfsHash);
+        setPopupMessage("Profile updated successfully.");
+      } else {
+        alert("Failed to create IPFS Hash.");
+      }
     } catch (err) {
       console.error("Error updating user profile:", err);
       setPopupMessage("Failed to update profile. Please try again.");
-      setTimeout(() => {
-        setPopupMessage(null);
-      }, 3000);
     }
 
     // Add more functionality here (e.g., API call)
@@ -120,25 +163,22 @@ const UserProfileForm = ({ userData, walletAddress }) => {
         onSubmit={handleSubmit(onSubmit)}
         className="max-w-xl mx-auto p-5 bg-white shadow-lg rounded-lg mt-10"
       >
+        <h3 className="flex italic text-blue-700 text-sm items-center pb-4">
+          <InfoIcon size={16} color="blue" />
+          You can pay a small gas fee to update your profile.
+        </h3>
         <h2 className="text-2xl font-semibold mb-6 text-center">
-          User Profile
+          Profile
+          <br />
+          <span
+            onClick={() => window.navigator.clipboard.writeText(walletAddress)}
+            className="text-sm cursor-pointer text-purple-600 italic"
+          >
+            &nbsp; {walletAddress}
+            {/* {shortenAddress(walletAddress)} */}
+          </span>
         </h2>
 
-        <label
-          className="block text-sm font-medium text-gray-700 mt-4"
-          htmlFor="walletAddress"
-        >
-          Wallet Address:
-        </label>
-        <input
-          disabled
-          type="text"
-          id="walletAddress"
-          {...register("walletAddress", {
-            required: "Wallet Address is required",
-          })}
-          className="mt-1 block w-full p-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500"
-        />
         {errors.walletAddress && (
           <p className="text-red-500 text-sm">{errors.walletAddress.message}</p>
         )}

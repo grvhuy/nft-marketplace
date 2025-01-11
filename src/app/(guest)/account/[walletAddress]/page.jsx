@@ -2,11 +2,13 @@
 
 import React, { useEffect } from "react";
 import UserProfileForm from "../../../../components/UserProfileForm";
-import { getUserByWalletAddress } from "@/lib/rxDB";
+// import { getUserByWalletAddress } from "@/lib/rxDB";
 import NFTMarketplaceContext from "../../../../../Context/NFTMarketplaceContext";
 
 const AccountPage = () => {
-  const { currentAccount } = React.useContext(NFTMarketplaceContext);
+  const { currentAccount } = React.useContext(
+    NFTMarketplaceContext
+  );
 
   const pathname = window.location.pathname;
   const walletAddress = pathname.split("/").pop();
@@ -14,12 +16,6 @@ const AccountPage = () => {
 
   useEffect(() => {
     console.log("wallet", walletAddress);
-    if (currentAccount) {
-      getUserByWalletAddress(walletAddress).then((res) => {
-        console.log("getUserByWalletAddress", res._data);
-        setUserData(res._data);
-      });
-    }
   }, [currentAccount]);
 
   if (currentAccount !== walletAddress) {
@@ -34,10 +30,9 @@ const AccountPage = () => {
 
   return (
     <div className="mx-20 min-h-screen">
-      <UserProfileForm 
-        userData={userData} 
-        walletAddress={walletAddress}
-      />
+      {walletAddress && currentAccount && (
+        <UserProfileForm userData={userData} walletAddress={walletAddress} />
+      )}
     </div>
   );
 };

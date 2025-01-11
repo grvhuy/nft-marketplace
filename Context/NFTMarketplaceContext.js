@@ -70,50 +70,54 @@ export const NFTMarketplaceProvider = ({ children }) => {
       // Kiểm tra xem tài khoản mới có hash IPFS không
       const ipfsHash = await getUserIPFSHash(newAccount);
       
-      if (!ipfsHash) {
-        // Tài khoản mới chưa có dữ liệu IPFS, có thể yêu cầu tạo mới
-        const defaulUserData = {
-          address: newAccount,
-          name: "Anonymous",
-          bio: "No bio",
-          email: "Not provided yet",
-          avatar: "",
-          socials: {
-            facebook: "",
-            twitter: "",
-            instagram: "",
-          },
-        };
+      // if (!ipfsHash) {
+      //   alert("No IPFS hash found for this account. Please create one.");
+      // }
+      
+      // if (!ipfsHash) {
+      //   // Tài khoản mới chưa có dữ liệu IPFS, có thể yêu cầu tạo mới
+      //   const defaulUserData = {
+      //     address: newAccount,
+      //     name: "Anonymous",
+      //     bio: "No bio",
+      //     email: "Not provided yet",
+      //     avatar: "",
+      //     socials: {
+      //       facebook: "",
+      //       twitter: "",
+      //       instagram: "",
+      //     },
+      //   };
   
-        const dataToPIN = {
-          pinataMetadata: {
-            name: `${newAccount}.json`,
-          },
-          pinataContent: defaulUserData,
-        };
+      //   const dataToPIN = {
+      //     pinataMetadata: {
+      //       name: `${newAccount}.json`,
+      //     },
+      //     pinataContent: defaulUserData,
+      //   };
   
-        const newhash = await fetch(
-          "https://api.pinata.cloud/pinning/pinJSONToIPFS",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(dataToPIN),
-          }
-        );
+      //   const newhash = await fetch(
+      //     "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+      //     {
+      //       method: "POST",
+      //       headers: {
+      //         Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
+      //         "Content-Type": "application/json",
+      //       },
+      //       body: JSON.stringify(dataToPIN),
+      //     }
+      //   );
   
-        if (newhash.status === 200) {
-          const response = await newhash.json();
-          await setUserIPFSHash(response.IpfsHash);
-          alert("IPFS Hash has been created and set successfully!");
-        } else {
-          alert("Failed to create IPFS Hash.");
-        }
-      } else {
-        alert(`Your existing IPFS hash is: ${ipfsHash}`);
-      }
+      //   if (newhash.status === 200) {
+      //     const response = await newhash.json();
+      //     await setUserIPFSHash(response.IpfsHash);
+      //     alert("IPFS Hash has been created and set successfully!");
+      //   } else {
+      //     alert("Failed to create IPFS Hash.");
+      //   }
+      // } else {
+      //   alert(`Your existing IPFS hash is: ${ipfsHash}`);
+      // }
   
       // Cập nhật localStorage và cookie cho tài khoản mới
       localStorage.setItem("currentAccount", newAccount);
@@ -172,48 +176,52 @@ export const NFTMarketplaceProvider = ({ children }) => {
 
         const ipfsHash = await getUserIPFSHash(account);
 
-        if (!ipfsHash) {
-          const defaulUserData = {
-            address: account,
-            name: "Anonymous",
-            bio: "No bio",
-            email: "Not provided yet",
-            avatar: "",
-            socials: {
-              facebook: "",
-              twitter: "",
-              instagram: "",
-            },
-          };
+        // if (!ipfsHash) {
+        //   alert("No IPFS hash found for this account. Please create one.");
+        // }
 
-          const dataToPIN = {
-            pinataMetadata: {
-              name: `${account}.json`,
-            },
-            pinataContent: defaulUserData,
-          };
+        // if (!ipfsHash) {
+        //   const defaulUserData = {
+        //     address: account,
+        //     name: "Anonymous",
+        //     bio: "No bio",
+        //     email: "Not provided yet",
+        //     avatar: "",
+        //     socials: {
+        //       facebook: "",
+        //       twitter: "",
+        //       instagram: "",
+        //     },
+        //   };
 
-          const newhash = await fetch(
-            "https://api.pinata.cloud/pinning/pinJSONToIPFS",
-            {
-              method: "POST",
+        //   const dataToPIN = {
+        //     pinataMetadata: {
+        //       name: `${account}.json`,
+        //     },
+        //     pinataContent: defaulUserData,
+        //   };
 
-              headers: {
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(dataToPIN),
-            }
-          );
+        //   const newhash = await fetch(
+        //     "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+        //     {
+        //       method: "POST",
 
-          if (newhash.status === 200) {
-            const response = await newhash.json();
-            await setUserIPFSHash(response.IpfsHash);
-            alert("IPFS Hash has been created and set successfully!");
-          } else {
-            alert("Failed to create IPFS Hash.");
-          }
-        }
+        //       headers: {
+        //         Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
+        //         "Content-Type": "application/json",
+        //       },
+        //       body: JSON.stringify(dataToPIN),
+        //     }
+        //   );
+
+        //   if (newhash.status === 200) {
+        //     const response = await newhash.json();
+        //     await setUserIPFSHash(response.IpfsHash);
+        //     alert("IPFS Hash has been created and set successfully!");
+        //   } else {
+        //     alert("Failed to create IPFS Hash.");
+        //   }
+        // }
 
         // Lưu vào localStorage để duy trì giữa các lần reload
         localStorage.setItem("currentAccount", account);
@@ -700,7 +708,7 @@ export const NFTMarketplaceProvider = ({ children }) => {
     }
   };
 
-  const fetchAllAuction = async () => {
+  const fetchAllAuctions = async () => {
     try {
       const provider = new ethers.providers.JsonRpcProvider(
         rpcJSONProviderString
@@ -763,7 +771,9 @@ export const NFTMarketplaceProvider = ({ children }) => {
         placeBid,
         endAuction,
         fetchAuction,
-        fetchAllAuction,
+        fetchAllAuctions,
+        setUserIPFSHash,
+        getUserIPFSHash,
       }}
     >
       {children}

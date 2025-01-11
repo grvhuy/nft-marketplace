@@ -42,15 +42,15 @@ contract NFTMarketplace is ERC721URIStorage {
         owner = payable(msg.sender);
     }
 
-    // function updateListingPrice(
-    //     uint256 _listingPrice
-    // ) public payable onlyOwner {
-    //     require(
-    //         owner == msg.sender,
-    //         "Only marketplace owner can update listing price."
-    //     );
-    //     listingPrice = _listingPrice;
-    // }
+    function updateListingPrice(
+        uint256 _listingPrice
+    ) public payable onlyOwner {
+        require(
+            owner == msg.sender,
+            "Only marketplace owner can update listing price."
+        );
+        listingPrice = _listingPrice;
+    }
 
     /* Returns the listing price of the contract
         view: listing price is a state variable, we use view to read the state, 
@@ -60,7 +60,7 @@ contract NFTMarketplace is ERC721URIStorage {
         return listingPrice;
     }
 
-    /* Mints a token and lists it in the marketplace */
+    /* Mint a token and list */
     function createToken(
         string memory tokenURI,
         uint256 price
@@ -168,8 +168,6 @@ contract NFTMarketplace is ERC721URIStorage {
             "Sold",
             block.timestamp
         );
-        // tokenTransactionHistory[tokenId].push(Transaction(msg.sender, seller, price, block.timestamp));
-        // emit TransactionCompleted(tokenId, msg.sender, seller, price, block.timestamp);
     }
 
     /* Returns all unsold market items */
@@ -178,7 +176,6 @@ contract NFTMarketplace is ERC721URIStorage {
         uint256 unsoldItemCount = 0;
         uint256 currentIndex = 0;
 
-        // Đếm số lượng các item chưa bán
         for (uint256 i = 1; i <= itemCount; i++) {
             if (
                 idToMarketItem[i].owner == address(this) &&
@@ -188,7 +185,6 @@ contract NFTMarketplace is ERC721URIStorage {
             }
         }
 
-        // Tạo mảng mới để chứa các item chưa bán
         MarketItem[] memory items = new MarketItem[](unsoldItemCount);
         for (uint256 i = 1; i <= itemCount; i++) {
             if (

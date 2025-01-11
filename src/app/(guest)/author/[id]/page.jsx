@@ -16,7 +16,7 @@ import { usePathname } from "next/navigation";
 const CollectionPage = () => {
   const pathname = usePathname();
   const walletAddress = pathname.split("/").pop();
-  const { currentAccount, fetchNFTs, fetchMineOrListedNFTs } = React.useContext(
+  const { currentAccount, fetchNFTs, getUserIPFSHash } = React.useContext(
     NFTMarketplaceContext
   );
 
@@ -30,26 +30,27 @@ const CollectionPage = () => {
   const [following, setFollowing] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [filterValue, setFilterValue] = useState("Collectibles");
+  const [ipfsHash, setIpfsHash] = useState(null);
 
-  const filterArray = ["Collectibles", "Created", "Following", "Followers"];
+  const filterArray = ["Collectibles", "Own"];
 
   // Fetch user data and follower/following lists
   useEffect(() => {
-    if (currentAccount) {
-      getFollowers(walletAddress).then((res) => {
-        setFollowers(res.followers);
-        setFollowing(res.following);
-        if (res.user) {
-          setUserData(res.user._data);
-        }
-        console.log("user", res.user);
+    // if (currentAccount) {
+    //   getFollowers(walletAddress).then((res) => {
+    //     setFollowers(res.followers);
+    //     setFollowing(res.following);
+    //     if (res.user) {
+    //       setUserData(res.user._data);
+    //     }
+    //     console.log("user", res.user);
 
-        const userIsFollowing = res.followers.some(
-          (follower) => follower._data.walletAddress === currentAccount
-        );
-        setIsFollowing(userIsFollowing);
-      });
-    }
+    //     const userIsFollowing = res.followers.some(
+    //       (follower) => follower._data.walletAddress === currentAccount
+    //     );
+    //     setIsFollowing(userIsFollowing);
+    //   });
+    // }
   }, [currentAccount, walletAddress]);
 
   useEffect(() => {
@@ -67,31 +68,36 @@ const CollectionPage = () => {
     walletAddress,
   ]);
 
-  // Handle follow action
-  const handleFollow = async () => {
-    try {
-      await followUser(currentAccount, walletAddress);
-      setIsFollowing(true);
-      setFollowers((prev) => [
-        ...prev,
-        { _data: { walletAddress: currentAccount } },
-      ]); // Add current user to followers list
-    } catch (error) {
-      console.error("Error following user:", error);
-    }
-  };
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const hash = await getUserIPFSHash(currentAccount);
+      if (!hash) {
+        console.warn("You have not updated your profile yet.");
+      } else {
+        try {
+          // setIpfsHash(hash);
+          const link = `https://${process.env.NEXT_PUBLIC_GATEWAY_URL}/ipfs/${hash}`;
+          const response = await fetch(link);
 
-  const handleUnfollow = async () => {
-    try {
-      await unfollowUser(currentAccount, walletAddress);
-      setIsFollowing(false);
-      setFollowers((prev) =>
-        prev.filter((f) => f._data.walletAddress !== currentAccount)
-      ); // Remove current user from followers list
-    } catch (error) {
-      console.error("Error unfollowing user:", error);
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+
+
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      }
+    };
+
+    if (currentAccount) {
+      fetchUserData();
     }
-  };
+  }, [currentAccount, getUserIPFSHash]);
+
 
   return (
     <div className="mx-20 min-h-screen">
@@ -100,9 +106,9 @@ const CollectionPage = () => {
         <AuthorCard
           userData={userData}
           walletAddress={walletAddress}
-          isFollowing={isFollowing}
-          onFollow={handleFollow}
-          onUnfollow={handleUnfollow}
+          // isFollowing={isFollowing}
+          // onFollow={handleFollow}
+          // onUnfollow={handleUnfollow}
         />
       )}
 
@@ -140,7 +146,7 @@ const CollectionPage = () => {
         </div>
       )}
 
-      {filterValue === "Following" && (
+      {/* {filterValue === "Following" && (
         <div className="grid grid-cols-1 md:grid-cols-5 space-x-4 overflow-x-auto p-4">
           {following.map((follower) => (
             <UserCard
@@ -153,7 +159,6 @@ const CollectionPage = () => {
         </div>
       )}
 
-      {/* Example Followers Display */}
       {filterValue === "Followers" && (
         <div className="grid grid-cols-1 md:grid-cols-5 space-x-4 overflow-x-auto p-4">
           {followers.map((follower) => (
@@ -165,7 +170,7 @@ const CollectionPage = () => {
             />
           ))}
         </div>
-      )}
+      )} */}
     </div>
   );
 };
