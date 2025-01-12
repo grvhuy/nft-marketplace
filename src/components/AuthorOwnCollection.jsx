@@ -32,9 +32,6 @@ const NFTCard = ({ tokenId, image, name, timeLeft, price }) => {
             sizes="100vw"
           />
         </div>
-        {/* <div className="absolute top-2 right-2 bg-white p-1 rounded-full">
-          <span className="text-sm"> ❤️</span>
-        </div> */}
       </div>
       <div className="mt-4">
         <h3 className="text-lg font-semibold mt-2">{name}</h3>
@@ -54,8 +51,7 @@ const NFTCard = ({ tokenId, image, name, timeLeft, price }) => {
   );
 };
 
-const AuthorCollection = (props) => {
-
+const AuthorOwnCollection = (props) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
@@ -92,27 +88,20 @@ const AuthorCollection = (props) => {
 
   return (
     <div className="p-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 overflow-x-auto p-4">
-        {props.nfts &&
-          props.walletAddress &&
-          props.nfts.map((nft, index) => {
-            if (
-              nft.seller.toString() ===
-              "0x0000000000000000000000000000000000000000"
-            ) {
-              return;
-            } else {
-              <NFTCard
-                key={index}
-                tokenId={nft.tokenId}
-                image={nft.image}
-                name={nft.name}
-                timeLeft={nft.timeLeft}
-                price={nft.price}
-              />;
-            }
-          })}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {paginatedNFTs.map((nft, index) => (
+          <NFTCard
+            key={index}
+            tokenId={nft.tokenId}
+            image={nft.image}
+            name={nft.name}
+            timeLeft={nft.timeLeft}
+            price={nft.price}
+          />
+        ))}
       </div>
+
+      {/* Pagination Controls */}
       <div className="flex justify-center items-center mt-32">
         <Button
           onClick={handlePreviousPage}
@@ -137,8 +126,7 @@ const AuthorCollection = (props) => {
         </Button>
       </div>
     </div>
-
   );
 };
 
-export default AuthorCollection;
+export default AuthorOwnCollection;

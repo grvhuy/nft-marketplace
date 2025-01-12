@@ -57,7 +57,7 @@ export const NFTMarketplaceProvider = ({ children }) => {
     };
   }, []);
 
-    async function handleAccountsChanged(accounts) {
+  async function handleAccountsChanged(accounts) {
     // Nếu không có tài khoản nào, hãy thực hiện các hành động cần thiết khi người dùng đăng xuất
     if (accounts.length === 0) {
       disconnectWallet();
@@ -66,63 +66,10 @@ export const NFTMarketplaceProvider = ({ children }) => {
       // Có tài khoản mới, cập nhật tài khoản hiện tại
       const newAccount = accounts[0];
       setCurrentAccount(newAccount);
-      
-      // Kiểm tra xem tài khoản mới có hash IPFS không
-      const ipfsHash = await getUserIPFSHash(newAccount);
-      
-      // if (!ipfsHash) {
-      //   alert("No IPFS hash found for this account. Please create one.");
-      // }
-      
-      // if (!ipfsHash) {
-      //   // Tài khoản mới chưa có dữ liệu IPFS, có thể yêu cầu tạo mới
-      //   const defaulUserData = {
-      //     address: newAccount,
-      //     name: "Anonymous",
-      //     bio: "No bio",
-      //     email: "Not provided yet",
-      //     avatar: "",
-      //     socials: {
-      //       facebook: "",
-      //       twitter: "",
-      //       instagram: "",
-      //     },
-      //   };
-  
-      //   const dataToPIN = {
-      //     pinataMetadata: {
-      //       name: `${newAccount}.json`,
-      //     },
-      //     pinataContent: defaulUserData,
-      //   };
-  
-      //   const newhash = await fetch(
-      //     "https://api.pinata.cloud/pinning/pinJSONToIPFS",
-      //     {
-      //       method: "POST",
-      //       headers: {
-      //         Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
-      //         "Content-Type": "application/json",
-      //       },
-      //       body: JSON.stringify(dataToPIN),
-      //     }
-      //   );
-  
-      //   if (newhash.status === 200) {
-      //     const response = await newhash.json();
-      //     await setUserIPFSHash(response.IpfsHash);
-      //     alert("IPFS Hash has been created and set successfully!");
-      //   } else {
-      //     alert("Failed to create IPFS Hash.");
-      //   }
-      // } else {
-      //   alert(`Your existing IPFS hash is: ${ipfsHash}`);
-      // }
-  
-      // Cập nhật localStorage và cookie cho tài khoản mới
+
       localStorage.setItem("currentAccount", newAccount);
       document.cookie = `walletConnected=true; path=/; SameSite=Strict`;
-  
+
       console.log("Connected account:", newAccount);
     }
   }
@@ -620,6 +567,46 @@ export const NFTMarketplaceProvider = ({ children }) => {
     }
   };
 
+  const fetchNFTsByOwner = async (owner) => {
+    try {
+      const provider = new ethers.providers.JsonRpcProvider(
+        rpcJSONProviderString
+      );
+      const contract = fetchContract(provider);
+      const data = await contract.fetchNFTsByOwner(owner);
+
+      const items = await Promise.all(
+        data.map(
+          async ({ tokenId, seller, owner, price: unformattedPrice }) => {
+            const tokenURI = await contract.tokenURI(tokenId);
+
+            const {
+              data: { name, description, image },
+            } = await axios.get(tokenURI);
+            const price = ethers.utils.formatUnits(
+              unformattedPrice.toString(),
+              "ether"
+            );
+
+            return {
+              tokenId: tokenId.toNumber(),
+              seller,
+              owner,
+              price,
+              name,
+              description,
+              image,
+              tokenURI,
+            };
+          }
+        )
+      );
+      return items;
+    } catch (error) {
+      console.error("Error during NFT fetching:", error);
+    }
+  };
+
   const startAuction = async (tokenId, startPrice, duration) => {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -722,7 +709,6 @@ export const NFTMarketplaceProvider = ({ children }) => {
     }
   };
 
-  // Hàm cập nhật hash IPFS cho người dùng
   const setUserIPFSHash = async (ipfsHash) => {
     try {
       const contract = await connectWithContract();
@@ -740,7 +726,6 @@ export const NFTMarketplaceProvider = ({ children }) => {
     }
   };
 
-  // Hàm lấy hash IPFS của người dùng
   const getUserIPFSHash = async (userAddress) => {
     try {
       const contract = await connectWithContract();
@@ -749,6 +734,30 @@ export const NFTMarketplaceProvider = ({ children }) => {
     } catch (error) {
       console.error("Error fetching user IPFS hash:", error);
       return null;
+    }
+  };
+
+  const changeNFTListingPrice = async (newPrice) => {
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = fetchContract(signer);
+
+      // Convert newPrice to wei
+      const price = ethers.utils.parseUnits(newPrice.toString(), "ether");
+
+      // Pass the converted price to the contract function
+      const transaction = await contract.updateListingPrice(price);
+
+      const receipt = await transaction.wait();
+
+      if (receipt.status === 1) {
+        alert("Listing price changed successfully!");
+      } else {
+        alert("Transaction failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error during listing price change:", error);
     }
   };
 
@@ -774,6 +783,8 @@ export const NFTMarketplaceProvider = ({ children }) => {
         fetchAllAuctions,
         setUserIPFSHash,
         getUserIPFSHash,
+        fetchNFTsByOwner,
+        changeNFTListingPrice,
       }}
     >
       {children}

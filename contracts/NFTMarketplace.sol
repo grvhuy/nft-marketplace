@@ -489,15 +489,20 @@ contract NFTMarketplace is ERC721URIStorage {
     // User
     mapping(address => string) private userIPFSHash;
 
-    function setUserIPFSHash(string memory ipfsHash) public {
-        userIPFSHash[msg.sender] = ipfsHash;
+    function setUserIPFSHash(
+        address userAddress,
+        string memory ipfsHash
+    ) public {
+        require(
+            userAddress == msg.sender || msg.sender == owner,
+            "You can only set IPFS hash for yourself unless you are the admin"
+        );
+        userIPFSHash[userAddress] = ipfsHash;
     }
 
-    function getUserIPFSHash(address userAddress)
-        public
-        view
-        returns (string memory)
-    {
+    function getUserIPFSHash(
+        address userAddress
+    ) public view returns (string memory) {
         return userIPFSHash[userAddress];
     }
 }

@@ -14,9 +14,10 @@ const AuthorCard = ({
   // onUnfollow,
 }) => {
   const { currentAccount } = React.useContext(NFTMarketplaceContext);
+  // const [loading, setLoading] = React.useState(false);
 
   useEffect(() => {
-    console.log("userData", userData);
+    console.log("userData in child section", userData);
   }, [userData]);
 
   return (
@@ -61,7 +62,7 @@ const AuthorCard = ({
             </div>
           )} */}
         </div>
-        <p className="text-white mt-2">{userData?.bio || "No bio available"}</p>
+        <p className="text-white mt-2">{userData?.bio || "No bio."}</p>
         {userData && (
           <div className="flex space-x-4 mt-3">
             <Link href={userData?.facebookLink || "#"} target="_blank">
