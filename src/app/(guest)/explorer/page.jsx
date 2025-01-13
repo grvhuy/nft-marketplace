@@ -12,6 +12,7 @@ import {
 } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
+import { ScrollArea } from "../../../components/ui/scroll-area";
 import {
   Tabs,
   TabsContent,
@@ -23,9 +24,11 @@ import {
   nftmarketplaceABI,
   nftmarketplaceaddress,
 } from "../../../../Context/constants";
+import { useRouter } from "next/navigation";
 
 // NFT Explorer Component
 const NFTExplorer = ({ web3 }) => {
+  const router = useRouter();
   const [tokenId, setTokenId] = useState("");
   const [nftData, setNftData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -151,8 +154,18 @@ const NFTExplorer = ({ web3 }) => {
         ) : (
           nftData && (
             <div>
+              <a
+                // onClick={() => {
+                //   router.push(`/assets/${tokenId}`);
+                // }}
+                href={`/assets/${tokenId}`}
+                className="text-lg hover:underline text-blue-500"
+                target="_blank"
+              >
+                Go to NFT page
+              </a>
+              
               <h3 className="font-bold">NFT Details</h3>
-              <p>Token ID: {nftData.tokenId}</p>
               <p>Owner: {nftData.owner}</p>
               <p>Seller: {nftData.seller}</p>
               <p>Price: {nftData.price} ETH</p>
@@ -160,9 +173,8 @@ const NFTExplorer = ({ web3 }) => {
               {nftData.tokenURI && <p>Token URI: {nftData.tokenURI}</p>}
               <h4>History:</h4>
               {nftData.history.map((event, idx) => (
-                <div key={idx}>
+                <div key={idx} className="border-b border-gray-500 pb-4">
                   <p>Type: {event.type}</p>
-                  <p>Block: {event.blockNumber}</p>
                   <p>Time: {event.timestamp}</p>
                   {event.type === "Transfer" ? (
                     <>

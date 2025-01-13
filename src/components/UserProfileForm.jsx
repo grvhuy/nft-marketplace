@@ -14,6 +14,7 @@ const UserProfileForm = ({ userData, walletAddress }) => {
   const [previewImage, setPreviewImage] = useState(
     "https://placehold.co/100x400?text=Preview+Image"
   );
+  const [isRestricted, setIsRestricted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [ipfsHash, setIpfsHash] = useState(null);
   const {
@@ -49,7 +50,9 @@ const UserProfileForm = ({ userData, walletAddress }) => {
           setValue("instagramLink", data.instagramLink || "");
           setValue("twitterLink", data.twitterLink || "");
           setValue("profileImage", data.profileImage || "");
-
+          if (data.restricted) {
+            setIsRestricted(true);
+          }
           // Update the preview image
           setPreviewImage(data.profileImage || null);
         } catch (error) {
@@ -98,7 +101,7 @@ const UserProfileForm = ({ userData, walletAddress }) => {
 
       if (newhash.status === 200) {
         const response = await newhash.json();
-        await setUserIPFSHash(response.IpfsHash);
+        await setUserIPFSHash(walletAddress, response.IpfsHash);
         setPopupMessage("Profile updated successfully.");
       } else {
         alert("Failed to create IPFS Hash.");
@@ -145,9 +148,9 @@ const UserProfileForm = ({ userData, walletAddress }) => {
   });
 
   return (
-    <div>
+    <div className="mb-12">
       {popupMessage && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 ">
           <div className="bg-white p-5 rounded-lg shadow-lg text-center">
             <p className="text-lg font-medium">{popupMessage}</p>
             <button
@@ -163,10 +166,20 @@ const UserProfileForm = ({ userData, walletAddress }) => {
         onSubmit={handleSubmit(onSubmit)}
         className="max-w-xl mx-auto p-5 bg-white shadow-lg rounded-lg mt-10"
       >
-        <h3 className="flex italic text-blue-700 text-sm items-center pb-4">
-          <InfoIcon size={16} color="blue" />
-          You can pay a small gas fee to update your profile.
-        </h3>
+        {!isRestricted && (
+          <h3 className="flex italic text-blue-700 text-sm items-center pb-4">
+            <InfoIcon size={16} color="blue" />
+            You can pay a small gas fee to update your profile.
+          </h3>
+        )}
+        {/* restricted warning */}
+        {isRestricted && (
+          <div className=" text-red-500 text-center p-2 flex items-center">
+            <InfoIcon className="w-8 h-8 mr-2" />
+            Your account has been restricted due to a violation of our terms.
+            You can not update your profile or selling NFTs for now.
+          </div>
+        )}
         <h2 className="text-2xl font-semibold mb-6 text-center">
           Profile
           <br />
@@ -237,6 +250,7 @@ const UserProfileForm = ({ userData, walletAddress }) => {
           Name:
         </label>
         <input
+          disabled={isRestricted}
           type="text"
           id="name"
           {...register("name", { required: "Name is required" })}
@@ -253,6 +267,7 @@ const UserProfileForm = ({ userData, walletAddress }) => {
           Email:
         </label>
         <input
+          disabled={isRestricted}
           type="email"
           id="email"
           {...register("email", { required: "Email is required" })}
@@ -269,6 +284,7 @@ const UserProfileForm = ({ userData, walletAddress }) => {
           Bio:
         </label>
         <textarea
+          disabled={isRestricted}
           id="bio"
           {...register("bio", { required: "Bio is required" })}
           className="mt-1 block w-full p-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500"
@@ -287,6 +303,7 @@ const UserProfileForm = ({ userData, walletAddress }) => {
               <Facebook color="#1362bf" />
             </span>
             <input
+              disabled={isRestricted}
               type="url"
               {...register("facebookLink")}
               placeholder="Facebook"
@@ -300,6 +317,7 @@ const UserProfileForm = ({ userData, walletAddress }) => {
               <Instagram color="#fe6000" />
             </span>
             <input
+              disabled={isRestricted}
               type="url"
               {...register("instagramLink")}
               placeholder="Instagram"
@@ -313,6 +331,7 @@ const UserProfileForm = ({ userData, walletAddress }) => {
               <TwitterIcon color="#35b1f7" />
             </span>
             <input
+              disabled={isRestricted}
               type="url"
               {...register("twitterLink")}
               placeholder="Twitter"
@@ -322,6 +341,7 @@ const UserProfileForm = ({ userData, walletAddress }) => {
         </div>
 
         <button
+          disabled={isRestricted}
           type="submit"
           className="mt-6 w-full p-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300"
         >

@@ -102,29 +102,31 @@ const AuthorOwnCollection = (props) => {
       </div>
 
       {/* Pagination Controls */}
-      <div className="flex justify-center items-center mt-32">
-        <Button
-          onClick={handlePreviousPage}
-          disabled={currentPage === 1}
-          className={`px-4 py-2 border rounded-md mx-2 ${
-            currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-        >
-          Previous
-        </Button>
-        <span className="mx-2 text-white">
-          Page {currentPage} of {totalPages}
-        </span>
-        <Button
-          onClick={handleNextPage}
-          disabled={currentPage === totalPages}
-          className={`px-4 py-2 border rounded-md mx-2 ${
-            currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-        >
-          Next
-        </Button>
-      </div>
+      {paginatedNFTs.length > 8 && (
+        <div className="flex justify-center items-center mt-32">
+          <Button
+            onClick={handlePreviousPage}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 border rounded-md mx-2 ${
+              currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            Previous
+          </Button>
+          <span className="mx-2 text-white">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages}
+            className={`px-4 py-2 border rounded-md mx-2 ${
+              currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

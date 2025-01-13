@@ -20,24 +20,37 @@ import { Copy, MoreHorizontalIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import NFTMarketplaceContext from "../../../../../Context/NFTMarketplaceContext";
 import Image from "next/image";
-import { nftmarketplaceaddress } from "../../../../../Context/constants";
+import {
+  contractOwner,
+  nftmarketplaceaddress,
+} from "../../../../../Context/constants";
 import Spinner from "@/components/Spinner";
 import Link from "next/link";
 import { ethers } from "ethers";
 import AuctionDialog from "../../../../components/AuctionDialog";
 import NFTTransactionChart from "../../../../components/NFTTransactionChart";
 import { searchNFTInfo } from "../../../../../utils/explorerHelpers";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart } from "../../../../lib/redux/feature/slice/cart";
 
 const NFTDetailsPage = () => {
   const tokenId = usePathname().split("/").pop();
   const router = useRouter();
+  useSelector((state) => state.cart);
+  const dispatch = useDispatch();
   const [nft, setNft] = useState(null);
   const [auction, setAuction] = useState(null);
   const [priceInEth, setPriceInEth] = useState(0);
   const [history, setHistory] = useState(null);
 
-  const { fetchNFTById, currentAccount, buyNFT, fetchAuction, placeBid } =
-    useContext(NFTMarketplaceContext);
+  const {
+    fetchNFTById,
+    currentAccount,
+    buyNFT,
+    fetchAuction,
+    placeBid,
+    getUserIPFSHash,
+  } = useContext(NFTMarketplaceContext);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -48,7 +61,7 @@ const NFTDetailsPage = () => {
 
     console.log("auction :", auction);
     fetchNFTById(tokenId).then((res) => {
-      // console.log(res);
+      console.log(res);
       setNft(res);
     });
     fetchAuction(tokenId).then((res) => {
@@ -59,9 +72,6 @@ const NFTDetailsPage = () => {
         setPriceInEth(
           ethers.utils.formatEther(ethers.BigNumber.from(res.highestBid))
         );
-        // console.log(
-        //   ethers.utils.formatEther(ethers.BigNumber.from(res.highestBid))
-        // );
       }
     });
     fetchHistory();
@@ -153,12 +163,39 @@ const NFTDetailsPage = () => {
                     width={48}
                   />
                   <div className="flex flex-col">
-                    <p className="ml-2">Creator</p>
-                    <b className="ml-2">Karil Costa</b>
+                    {nft.owner.toLowerCase() !== contractOwner.toLowerCase() ? (
+                      <>
+                        <p className="ml-2">Seller</p>
+                        <b className="ml-2">
+                          {nft.seller === ethers.constants.AddressZero ? (
+                            "No seller"
+                          ) : (
+                            <a
+                              target="_blank"
+                              href={`/author/${nft.seller}`}
+                              className="text-blue-500"
+                            >
+                              {nft.seller}
+                            </a>
+                          )}
+                        </b>
+                      </>
+                    ) : (
+                      <>
+                        <p className="ml-2">Owner</p>
+                        <a
+                          target="_blank"
+                          href={`/author/${nft.owner}`}
+                          className="ml-2 text-blue-500"
+                        >
+                          {nft.owner}
+                        </a>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
-              {auction !== null  && tokenId && (
+              {auction !== null && tokenId && (
                 <Timer
                   endTimeHex={auction ? auction.endTime._hex : 0}
                   tokenId={tokenId}
@@ -231,6 +268,20 @@ const NFTDetailsPage = () => {
                     }}
                   />
                 )}
+                <MyButton
+                  onClick={() => {
+                    dispatch(
+                      addToCart({
+                        id: nft.tokenId,
+                        price: nft.price,
+                        name: nft.name,
+                        image: nft.image,
+                        owner: nft.owner,
+                      })
+                    );
+                  }}
+                  title="Add to cart"
+                />
               </div>
 
               <div className="mt-6">

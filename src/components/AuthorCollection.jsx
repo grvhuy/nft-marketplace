@@ -55,9 +55,13 @@ const NFTCard = ({ tokenId, image, name, timeLeft, price }) => {
 };
 
 const AuthorCollection = (props) => {
-
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
+
+  useEffect(() => {
+    console.log("AuthorCollection", props.nfts);
+    // console.log("wallet", props.walletAddress);
+  }, [props]);
 
   const handleNextPage = () => {
     setCurrentPage((prev) => prev + 1);
@@ -75,13 +79,10 @@ const AuthorCollection = (props) => {
     );
   }
 
-  // Filter NFTs by owner
   const filteredNFTs = props.nfts.filter(
-    (nft) =>
-      nft.owner.toLowerCase() === props.walletAddress.toLowerCase()
+    (nft) => nft.seller.toLowerCase() == props.walletAddress.toLowerCase()
   );
 
-  // Paginate filtered NFTs
   const totalItems = filteredNFTs.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -92,52 +93,47 @@ const AuthorCollection = (props) => {
 
   return (
     <div className="p-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 overflow-x-auto p-4">
-        {props.nfts &&
-          props.walletAddress &&
-          props.nfts.map((nft, index) => {
-            if (
-              nft.seller.toString() ===
-              "0x0000000000000000000000000000000000000000"
-            ) {
-              return;
-            } else {
-              <NFTCard
-                key={index}
-                tokenId={nft.tokenId}
-                image={nft.image}
-                name={nft.name}
-                timeLeft={nft.timeLeft}
-                price={nft.price}
-              />;
-            }
-          })}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 overflow-x-auto">
+        {paginatedNFTs.map((nft, index) => {
+          return (
+            <NFTCard
+              key={index}
+              tokenId={nft.tokenId}
+              image={nft.image}
+              name={nft.name}
+              timeLeft={nft.timeLeft}
+              price={nft.price}
+            />
+          );
+        })}
       </div>
-      <div className="flex justify-center items-center mt-32">
-        <Button
-          onClick={handlePreviousPage}
-          disabled={currentPage === 1}
-          className={`px-4 py-2 border rounded-md mx-2 ${
-            currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-        >
-          Previous
-        </Button>
-        <span className="mx-2 text-white">
-          Page {currentPage} of {totalPages}
-        </span>
-        <Button
-          onClick={handleNextPage}
-          disabled={currentPage === totalPages}
-          className={`px-4 py-2 border rounded-md mx-2 ${
-            currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-        >
-          Next
-        </Button>
-      </div>
-    </div>
 
+      {props.nfts.length > 8 && (
+        <div className="flex justify-center items-center mt-32">
+          <Button
+            onClick={handlePreviousPage}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 border rounded-md mx-2 ${
+              currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            Previous
+          </Button>
+          <span className="mx-2 text-white">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages}
+            className={`px-4 py-2 border rounded-md mx-2 ${
+              currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            Next
+          </Button>
+        </div>
+      )}
+    </div>
   );
 };
 

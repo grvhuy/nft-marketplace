@@ -2,7 +2,7 @@ import Image from "next/image";
 import { Button } from "../ui/button";
 const HeroSection = () => {
   return (
-    <div className="grid grid-cols-2 mt-8 mx-40">
+    <div className="grid grid-cols-2 mt-8 lg:mx-40 sm:mx-2">
       <div className="flex flex-col justify-center">
         <h1 className="text-white font-bold text-7xl">Discover Digital Art & Collect Nfts</h1>
         <p className="text-white text-lg mt-6">

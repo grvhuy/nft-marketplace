@@ -93,7 +93,7 @@ const Restrict = () => {
       if (newhash.status === 200) {
         const response = await newhash.json();
         console.log("response", response);
-        await setUserIPFSHash(response.IpfsHash);
+        await setUserIPFSHash(searchAddress, response.IpfsHash);
       }
     } catch {
       console.error("Error restricting user:", error);
@@ -103,6 +103,49 @@ const Restrict = () => {
     // setAddressData(null);
     // setSearchAddress("");
   };
+
+  const unrestrictUser = async () => {
+    // alert("Are you sure you want to restrict this user?");
+    // prompt("Are you sure you want to restrict this user?");
+    const data = {
+      ...addressData,
+      restricted: false,
+    };
+
+    try {
+      const dataToPIN = {
+        pinataMetadata: {
+          name: `${searchAddress}.json`,
+          timestamp: new Date().toISOString(),
+        },
+        pinataContent: data,
+      };
+  
+      const newhash = await fetch(
+        "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataToPIN),
+        }
+      );
+  
+      if (newhash.status === 200) {
+        const response = await newhash.json();
+        console.log("response", response);
+        await setUserIPFSHash(searchAddress, response.IpfsHash);
+      }
+    } catch {
+      console.error("Error restricting user:", error);
+      alert("Failed to restrict user. Check console for details.");
+    }
+
+    // setAddressData(null);
+    // setSearchAddress("");
+  }
 
   return (
     <div className="space-y-4">
@@ -129,7 +172,7 @@ const Restrict = () => {
           {addressData && (
             <div className="mt-4">
               <p className="font-bold">User Profile:</p>
-              <pre>{JSON.stringify(addressData, null, 2)}</pre>
+              {/* <pre>{JSON.stringify(addressData, null, 2)}</pre> */}
               <div className="max-w-sm mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
                 <img
                   className="w-full h-48 object-cover"
@@ -137,7 +180,7 @@ const Restrict = () => {
                   alt="Profile"
                 />
                 {addressData.restricted && (
-                  <div className="bg-red-500 text-white text-center p-2">
+                  <div className="bg-red-500 text-white text-center p-2 flex items-center">
                     <BanIcon className="w-4 h-4 mr-2" />
                     Restricted
                   </div>
@@ -175,18 +218,21 @@ const Restrict = () => {
                     </a>
                   </div>
 
-                  <Button onClick={restrictUser} className="mt-4">
-                    Restrict User
-                  </Button>
-                  <Button
-                    onClick={async () => {
-                      const hash = await setUserIPFSHash("QmeMtT7Fyoq4BuC6Gn53zskuhxLmQc9CPkavLyMzJ87NL3");
-                      console.log("hash", hash);
-                    }}
-                    className="mt-4"
-                  >
-                    log
-                  </Button>
+                  {
+                    /* ban if not restricted */
+                  }
+                  {!addressData.restricted && (
+                    <Button onClick={restrictUser} className="mt-4">
+                      Restrict User
+                    </Button>
+                  )
+                  }
+                  {/* unban if restriced */}
+                  {addressData.restricted && (
+                    <Button onClick={unrestrictUser} className="mt-4">
+                      Unrestrict User
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -201,44 +247,14 @@ const Restrict = () => {
   );
 };
 
-// Main Blockchain Explorer Component
 const AdminPanel = () => {
-  // const web3 = new Web3("http://127.0.0.1:7545");
 
   const {
     currentAccount,
-    // getUserIPFSHash,
-    // setUserIPFSHash,
     changeNFTListingPrice,
   } = useContext(NFTMarketplaceContext);
   const [userData, setUserData] = useState(null);
   const [newPrice, setNewPrice] = useState("");
-
-  // useEffect(() => {
-  //   const fetchUserData = async () => {
-  //     const hash = await getUserIPFSHash(currentAccount);
-  //     console.log("hash", hash);
-  //     if (!hash) {
-  //       console.warn("You have not updated your profile yet.");
-  //     } else {
-  //       try {
-  //         // setIpfsHash(hash);
-  //         const link = `https://${process.env.NEXT_PUBLIC_GATEWAY_URL}/ipfs/${hash}`;
-  //         const response = await fetch(link);
-  //         if (!response.ok) {
-  //           throw new Error(`HTTP error! Status: ${response.status}`);
-  //         }
-  //         const data = await response.json();
-  //         // console.log("data", data);
-  //         setUserData(data);
-  //       } catch (error) {
-  //         console.error("Error fetching user data:", error);
-  //       }
-  //     }
-  //   };
-
-  //   fetchUserData();
-  // }, []);
 
   if (currentAccount.toLowerCase() !== contractOwner.toLowerCase()) {
     return (
@@ -247,36 +263,6 @@ const AdminPanel = () => {
       </div>
     );
   }
-
-  // const restrictUser = async () => {
-  //   const dataToPIN = {
-  //     pinataMetadata: {
-  //       name: `${walletAddress}.json`,
-  //       timestamp: new Date().toISOString(),
-  //     },
-  //     pinataContent: {
-  //       ...userData,
-  //       restricted: true,
-  //     },
-  //   };
-
-  //   const newhash = await fetch(
-  //     "https://api.pinata.cloud/pinning/pinJSONToIPFS",
-  //     {
-  //       method: "POST",
-  //       headers: {
-  //         Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(dataToPIN),
-  //     }
-  //   );
-
-  //   if (newhash.status === 200) {
-  //     const response = await newhash.json();
-  //     await setUserIPFSHash(response.IpfsHash);
-  //   }
-  // };
 
   const handleChangePrice = async () => {
     if (!newPrice || isNaN(parseFloat(newPrice)) || parseFloat(newPrice) <= 0) {
@@ -293,10 +279,10 @@ const AdminPanel = () => {
 
   return (
     <div className="p-4 min-h-screen">
-      <Tabs defaultValue="nft">
+      <Tabs defaultValue="listingPrice">
         <TabsList>
-          <TabsTrigger value="restrict">Restriction</TabsTrigger>
           <TabsTrigger value="listingPrice">Listing Price</TabsTrigger>
+          <TabsTrigger value="restrict">Restriction</TabsTrigger>
         </TabsList>
         <TabsContent value="restrict">
           <Restrict />

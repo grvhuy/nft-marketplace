@@ -31,7 +31,7 @@ const CollectionContainer = () => {
               sizes="100vw"
             />
           </div>
-          <b className="mb-4 text-xl">Create Collection</b>
+          <b className="mb-4 text-xl">Create NFTs</b>
           <p className="text-center">
             Upload your work and setup your collection. Add a description,
             social links and floor price.

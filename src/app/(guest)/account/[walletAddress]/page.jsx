@@ -2,15 +2,15 @@
 
 import React, { useEffect } from "react";
 import UserProfileForm from "../../../../components/UserProfileForm";
-// import { getUserByWalletAddress } from "@/lib/rxDB";
 import NFTMarketplaceContext from "../../../../../Context/NFTMarketplaceContext";
+import { usePathname } from "next/navigation";
 
 const AccountPage = () => {
   const { currentAccount } = React.useContext(
     NFTMarketplaceContext
   );
 
-  const pathname = window.location.pathname;
+  const pathname = usePathname();
   const walletAddress = pathname.split("/").pop();
   const [userData, setUserData] = React.useState(null);
 

@@ -709,10 +709,10 @@ export const NFTMarketplaceProvider = ({ children }) => {
     }
   };
 
-  const setUserIPFSHash = async (ipfsHash) => {
+  const setUserIPFSHash = async (userAddress, ipfsHash) => {
     try {
       const contract = await connectWithContract();
-      const transaction = await contract.setUserIPFSHash(ipfsHash);
+      const transaction = await contract.setUserIPFSHash(userAddress, ipfsHash);
       const receipt = await transaction.wait();
 
       if (receipt.status === 1) {

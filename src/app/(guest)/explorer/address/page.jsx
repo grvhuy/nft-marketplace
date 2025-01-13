@@ -10,11 +10,13 @@ import {
 } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
+import { ScrollArea } from "../../../../components/ui/scroll-area";
 import { Search } from "lucide-react";
 import {
   nftmarketplaceABI,
   nftmarketplaceaddress,
 } from "../../../../../Context/constants";
+import { useRouter } from "next/navigation";
 
 const AddressExplorer = () => {
   const [searchAddress, setSearchAddress] = useState("");
@@ -64,7 +66,6 @@ const AddressExplorer = () => {
       const filter = marketplace.filters.MarketItemCreated();
       const events = await marketplace.queryFilter(filter);
       const nfts = await marketplace.fetchNFTsByOwner(searchAddress);
-      
 
       setAddressData({
         address: searchAddress,
@@ -79,6 +80,8 @@ const AddressExplorer = () => {
       setIsLoading(false);
     }
   };
+
+  const router = useRouter();
 
   return (
     <div className="space-y-4">
@@ -111,14 +114,14 @@ const AddressExplorer = () => {
         <>
           <Card>
             <CardHeader>
-              <CardTitle>Balance Information</CardTitle>
+              <CardTitle>
+                <Button onClick={() => {
+                  router.push(`/author/${searchAddress}`);
+                }} className="text-lg" variant="link">
+                  Go To Profile
+                </Button>
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="font-mono text-sm break-all">
-                Address: {addressData.address}
-              </p>
-              <p className="mt-2">Balance: {addressData.balance} ETH</p>
-            </CardContent>
           </Card>
 
           {/* <Card>
@@ -159,9 +162,9 @@ const AddressExplorer = () => {
               <CardTitle>Recent Transactions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {addressData.transactions.map((tx) => (
-                  <div key={tx.hash} className="border-b pb-4">
+              <ScrollArea className="h-80 space-y-4">
+                {addressData.transactions.map((tx, index) => (
+                  <div key={tx.hash + index} className="border-b border-gray-500 pb-4">
                     <p className="font-mono text-sm break-all">
                       Hash: {tx.hash}
                     </p>
@@ -187,7 +190,7 @@ const AddressExplorer = () => {
                 {addressData.transactions.length === 0 && (
                   <p>No recent transactions found</p>
                 )}
-              </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </>
@@ -197,4 +200,3 @@ const AddressExplorer = () => {
 };
 
 export default AddressExplorer;
-

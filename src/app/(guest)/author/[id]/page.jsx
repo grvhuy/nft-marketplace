@@ -30,11 +30,17 @@ const CollectionPage = () => {
 
   useEffect(() => {
     if (walletAddress) {
-      fetchNFTsByOwner(currentAccount).then((res) => {
+      fetchNFTs(currentAccount).then((res) => {
         console.log("res by this address", res);
         setNfts(res);
       });
+      fetchNFTsByOwner(walletAddress).then((res) => {
+        console.log("res by this address", res);
+        setOwnedNfts(res);
+      });
     }
+
+
   }, [currentAccount, walletAddress]);
 
   useEffect(() => {
@@ -79,12 +85,11 @@ const CollectionPage = () => {
             setFilterValue("Collectibles");
           } else if (filter === "Own") {
             setFilterValue("Own");
-          } 
+          }
         }}
         filterArray={filterArray}
       />
-
-      {nfts && filterValue === "Collectibles" && (
+      {nfts !== 0 && filterValue === "Collectibles" && (
         <div className="">
           <AuthorCollection nfts={nfts} walletAddress={walletAddress} />
         </div>
@@ -92,7 +97,7 @@ const CollectionPage = () => {
 
       {filterValue === "Own" && (
         <div className="">
-          <AuthorOwnCollection nfts={nfts} walletAddress={walletAddress} />
+          <AuthorOwnCollection nfts={ownedNfts} walletAddress={walletAddress} />
         </div>
       )}
     </div>

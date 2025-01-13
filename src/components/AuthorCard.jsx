@@ -16,9 +16,9 @@ const AuthorCard = ({
   const { currentAccount } = React.useContext(NFTMarketplaceContext);
   // const [loading, setLoading] = React.useState(false);
 
-  useEffect(() => {
-    console.log("userData in child section", userData);
-  }, [userData]);
+  // useEffect(() => {
+  //   console.log("userData in child section", userData);
+  // }, [userData]);
 
   return (
     <div className="bg-[#2f2e2e] rounded-lg shadow-lg p-6 flex items-center space-x-4 mt-4">

@@ -6,6 +6,7 @@ import { GunDBProvider } from "../../Context/GunContext";
 import Header from "../components/layout/header";
 import Footer from "../components/layout/footer";
 import { Work_Sans } from "next/font/google";
+import StoreProvider from "../lib/redux/Provider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -32,11 +33,11 @@ export default function RootLayout({ children }) {
         className={`${font.className} ${geistMono.variable} antialiased bg-[#2b2b2b]`}
       >
         <NFTMarketplaceProvider>
-            {/* <IPDBProvider> */}
-              <Header />
-              {children}
-              <Footer />
-            {/* </IPDBProvider> */}
+          <StoreProvider>
+            <Header />
+            {children}
+            <Footer />
+          </StoreProvider>
         </NFTMarketplaceProvider>
       </body>
     </html>

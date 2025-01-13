@@ -10,7 +10,7 @@ import { addNFTToAlbum, getAlbumsByOwnerAddress } from "@/lib/rxDB";
 
 const UploadNFT = () => {
 
-  const { uploadFile, createNFT, currentAccount } = React.useContext(NFTMarketplaceContext);
+  const { uploadFile, createNFT, currentAccount, getUserIPFSHash } = React.useContext(NFTMarketplaceContext);
 
   const [formData, setFormData] = useState({
     itemName: "",
@@ -21,39 +21,58 @@ const UploadNFT = () => {
     image: null,
     price: "",
   });
-  // const [fileURL, setFileURL] = useState(null);
 
   const [previewImage, setPreviewImage] = useState(
     "https://placehold.co/600x400?text=Preview+Image"
   );
 
-  // const collections = [
-  //   { id: 1, name: "Arts" },
-  //   { id: 2, name: "Sports" },
-  //   { id: 3, name: "Music" },
-  //   { id: 4, name: "Digital" },
-  //   { id: 5, name: "Photography" },
-  // ];
-
   const [collections, setCollections] = useState([]);
   const [currentCollection, setCurrentCollection] = useState(null);
   const [activeCollection, setActiveCollection] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    if (currentAccount) {
-      getAlbumsByOwnerAddress(currentAccount).then((res) => {
-        setCollections(res);
-        console.log("collections", res);
-      });
-    }
-  }, [currentAccount])
+    const fetchUserData = async () => {
+      const hash = await getUserIPFSHash(currentAccount);
+      console.log("hash", hash);
+      if (!hash) {
+        console.warn("You have not updated your profile yet.");
+      } else {
+        try {
+          // setIpfsHash(hash);
+          
+          const link = `https://${process.env.NEXT_PUBLIC_GATEWAY_URL}/ipfs/${hash}`;
+          const response = await fetch(link);
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          const data = await response.json();
+          console.log("data", data);
+          setUserData(data);
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [currentAccount]);
+
+  // useEffect(() => {
+  //   if (currentAccount) {
+  //     getAlbumsByOwnerAddress(currentAccount).then((res) => {
+  //       setCollections(res);
+  //       console.log("collections", res);
+  //     });
+  //   }
+  // }, [currentAccount])
 
   const onDrop = useCallback(async (acceptedFiles, rejectedFiles) => {
     setLoading(true);
     if (rejectedFiles.length > 0) {
       console.error("Rejected files:", rejectedFiles);
-      return; // Optionally handle rejected files
+      return; 
     }
 
     const url = await uploadFile(acceptedFiles[0]);
@@ -85,6 +104,16 @@ const UploadNFT = () => {
       collection: selectedCollection ? selectedCollection.name : "",
     });
   };
+
+  if (userData && userData.restricted) {
+    return (
+      <div className="mx-20 min-h-screen">
+        <h1 className="text-2xl text-white font-bold text-center mt-20">
+          You don't have permission to access this page
+        </h1>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-20 lg:mx-60 p-5 mb-20 bg-[#484646] shadow-lg rounded-lg mt-10">
@@ -223,20 +252,6 @@ const UploadNFT = () => {
           />
         </div>
 
-        {/* <label className="block text-white text-sm font-medium  mt-6">
-          Select Collection
-        </label> */}
-        {/* <select
-          className="mt-1 block w-full p-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500"
-          onChange={handleCollectionChange}
-        >
-          <option value="">-- Choose Collection --</option>
-          {collections.map((collection, index) => (
-            <option key={index} value={collection.id}>
-              {collection.albumname}
-            </option>
-          ))}
-        </select> */}
       </div>
       <div className="flex justify-between">
         <div></div>
