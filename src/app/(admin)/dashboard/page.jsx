@@ -77,7 +77,7 @@ const Restrict = () => {
         },
         pinataContent: data,
       };
-  
+
       const newhash = await fetch(
         "https://api.pinata.cloud/pinning/pinJSONToIPFS",
         {
@@ -89,7 +89,7 @@ const Restrict = () => {
           body: JSON.stringify(dataToPIN),
         }
       );
-  
+
       if (newhash.status === 200) {
         const response = await newhash.json();
         console.log("response", response);
@@ -120,7 +120,7 @@ const Restrict = () => {
         },
         pinataContent: data,
       };
-  
+
       const newhash = await fetch(
         "https://api.pinata.cloud/pinning/pinJSONToIPFS",
         {
@@ -132,7 +132,7 @@ const Restrict = () => {
           body: JSON.stringify(dataToPIN),
         }
       );
-  
+
       if (newhash.status === 200) {
         const response = await newhash.json();
         console.log("response", response);
@@ -145,7 +145,7 @@ const Restrict = () => {
 
     // setAddressData(null);
     // setSearchAddress("");
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -218,15 +218,12 @@ const Restrict = () => {
                     </a>
                   </div>
 
-                  {
-                    /* ban if not restricted */
-                  }
+                  {/* ban if not restricted */}
                   {!addressData.restricted && (
                     <Button onClick={restrictUser} className="mt-4">
                       Restrict User
                     </Button>
-                  )
-                  }
+                  )}
                   {/* unban if restriced */}
                   {addressData.restricted && (
                     <Button onClick={unrestrictUser} className="mt-4">
@@ -241,18 +238,18 @@ const Restrict = () => {
       </Card>
 
       {isLoading && (
-        <div className="text-center text-white">Loading address information...</div>
+        <div className="text-center text-white">
+          Loading address information...
+        </div>
       )}
     </div>
   );
 };
 
 const AdminPanel = () => {
-
-  const {
-    currentAccount,
-    changeNFTListingPrice,
-  } = useContext(NFTMarketplaceContext);
+  const { currentAccount, changeNFTListingPrice } = useContext(
+    NFTMarketplaceContext
+  );
   const [userData, setUserData] = useState(null);
   const [newPrice, setNewPrice] = useState("");
 
@@ -289,14 +286,15 @@ const AdminPanel = () => {
         </TabsContent>
         <TabsContent value="listingPrice">
           <div className="bg-white rounded-md p-4">
-            <div className="flex items-center space-x-2">
+            <CardTitle >Change listing price</CardTitle>
+            <div className="flex items-center space-x-2 mt-4">
               <Input
                 type="number"
                 placeholder="Enter new listing price (ETH)"
                 value={newPrice}
                 onChange={(e) => setNewPrice(e.target.value)}
               />
-              <Button onClick={handleChangePrice}>Change Listing Price</Button>
+              <Button onClick={handleChangePrice}>Change Price</Button>
             </div>
           </div>
         </TabsContent>

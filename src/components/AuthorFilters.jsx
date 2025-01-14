@@ -36,7 +36,7 @@ const AuthorFilters = (props) => {
         ))}
       </div>
       <div>
-        <select
+        {/* <select
           value={sortOption}
           onChange={handleSortChange}
           className="px-4 py-2 bg-white border border-gray-300 rounded-full shadow-sm"
@@ -44,7 +44,7 @@ const AuthorFilters = (props) => {
           <option>Most Recent</option>
           <option>Oldest</option>
           <option>Most Popular</option>
-        </select>
+        </select> */}
       </div>
     </div>
   );

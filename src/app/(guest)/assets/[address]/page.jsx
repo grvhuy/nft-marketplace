@@ -163,7 +163,40 @@ const NFTDetailsPage = () => {
                     width={48}
                   />
                   <div className="flex flex-col">
-                    {nft.owner.toLowerCase() !== contractOwner.toLowerCase() ? (
+                    {nft.owner.toLowerCase() ===
+                      nftmarketplaceaddress.toLowerCase() && (
+                      <>
+                        <p className="ml-2 font-bold">Seller</p>
+                        <b className="ml-2">
+                          <a
+                            target="_blank"
+                            href={`/author/${nft.seller}`}
+                            className="text-blue-500"
+                          >
+                            {nft.seller}
+                          </a>
+                        </b>
+                      </>
+                    )}
+
+                    { nft.seller === "0x0000000000000000000000000000000000000000" && (
+                       <>
+                       <p className="ml-2 font-bold">Owner</p>
+                       <b className="ml-2">
+                         <a
+                           target="_blank"
+                           href={`/author/${nft.owner}`}
+                           className="text-blue-500"
+                         >
+                           {nft.owner}
+                         </a>
+                       </b>
+                     </>
+                    )
+                    }
+
+                    {/* {nft.owner.toLowerCase() !==
+                    nftmarketplaceaddress.toLowerCase() ? (
                       <>
                         <p className="ml-2">Seller</p>
                         <b className="ml-2">
@@ -191,7 +224,7 @@ const NFTDetailsPage = () => {
                           {nft.owner}
                         </a>
                       </>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </div>

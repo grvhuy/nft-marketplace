@@ -1,7 +1,4 @@
 "use client";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
-import SearchFilter from "../../../components/SearchFilters";
 import { useContext, useEffect, useState } from "react";
 import NFTMarketplaceContext from "../../../../Context/NFTMarketplaceContext";
 import SearchCard from "../../../components/SearchCard";
@@ -16,6 +13,9 @@ const SearchPage = () => {
   const [auctionedNfts, setAuctionedNfts] = useState([]);
   const [activeFilter, setActiveFilter] = useState("All");
   const [sortOption, setSortOption] = useState("Most Recent");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
   useEffect(() => {
     fetchNFTs().then((item) => {
@@ -41,9 +41,6 @@ const SearchPage = () => {
   useEffect(() => {
     if (auctionsIds.length > 0) {
       fetchNFTsByIds(auctionsIds).then((items) => {
-        // if (!items) return;
-        // setNfts(items);
-        // setFilteredNfts(items);
         console.log(items);
         setAuctionedNfts(items);
       });
@@ -52,21 +49,42 @@ const SearchPage = () => {
 
   const handleFilterClick = (filter) => {
     setActiveFilter(filter);
+    setCurrentPage(1);
   };
 
   const handleSortChange = (event) => {
     setSortOption(event.target.value);
   };
 
+  const handleNextPage = () => {
+    setCurrentPage((prev) => prev + 1);
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const getPaginatedData = (data) => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return data.slice(startIndex, startIndex + itemsPerPage);
+  };
+
+  const getTotalPages = (data) => {
+    return Math.ceil(data.length / itemsPerPage);
+  };
+
+  const filteredData =
+    activeFilter === "All"
+      ? [...filteredNfts, ...auctionedNfts]
+      : activeFilter === "Listed NFTs"
+      ? nfts
+      : auctionedNfts;
+
+  const paginatedData = getPaginatedData(filteredData);
+  const totalPages = getTotalPages(filteredData);
+
   return (
     <div className="mx-20 min-h-screen bg-[#2e2e2e]">
-      {/* <div className="mx-24 mt-8 flex justify-center items-center space-x-2">
-        <Input
-          placeholder="Search for NFTs, Collections, and more..."
-          className="mt-8 text-lg w-1/2 text-white shadow-md p-4 py-6 rounded-lg"
-        />
-        <Search className="w-8 h-8 text-white mt-8 cursor-pointer" />
-      </div> */}
       <div className="mt-8 mx-8 flex items-center justify-between p-4 space-x-4">
         <div className="flex space-x-2">
           {["All", "Listed NFTs", "On Auction"].map((filter) => (
@@ -96,71 +114,56 @@ const SearchPage = () => {
         </div>
       </div>
 
-      {activeFilter === "All" && (
-        <div className="flex flex-wrap mx-8">
-          {filteredNfts &&
-            filteredNfts.map((nft) => (
+      <div className="flex flex-wrap mx-8">
+        {paginatedData &&
+          paginatedData.map((nft, index) => {
+            if (activeFilter === "On Auction") {
+              return (
+                <SearchCard
+                  key={`${nft.tokenURI}-${index}`}
+                  tokenId={nft.tokenId}
+                  image={nft.image}
+                  name={nft.name}
+                  price={nft.price}
+                />
+              );
+            }
+            return (
               <SearchCard
-                key={nft.tokenURI}
+                key={`${nft.tokenURI}-${index}`}
                 tokenId={nft.tokenId}
                 image={nft.image}
                 name={nft.name}
                 price={nft.price}
               />
-            ))}
+            );
+          })}
+      </div>
 
-          {auctionedNfts &&
-            auctionedNfts.map((nft, index) => {
-              if (index % 2 === 0) {
-                return (
-                  <SearchCard
-                    key={nft.tokenURI + "-auction" + index}
-                    tokenId={nft.tokenId}
-                    image={nft.image}
-                    name={nft.name}
-                    price={nft.price}
-                  />
-                );
-              }
-              return;
-            })}
-        </div>
-      )}
-
-      {activeFilter === "Listed NFTs" && (
-        <div className="flex flex-wrap mx-8">
-          {nfts &&
-            nfts.map((nft) => (
-              <SearchCard
-                key={nft.tokenURI}
-                tokenId={nft.tokenId}
-                image={nft.image}
-                name={nft.name}
-                price={nft.price}
-              />
-            ))}
-        </div>
-      )}
-
-      {activeFilter === "On Auction" && (
-        <div className="flex flex-wrap mx-8">
-          {auctionedNfts &&
-            auctionedNfts.map((nft, index) => {
-              if (index % 2 === 0) {
-                return (
-                  <SearchCard
-                    key={nft.tokenURI + "-auction" + index}
-                    tokenId={nft.tokenId}
-                    image={nft.image}
-                    name={nft.name}
-                    price={nft.price}
-                  />
-                );
-              }
-              return;
-            })}
-        </div>
-      )}
+      {/* Pagination */}
+      <div className="flex justify-center items-center mt-16  pb-4 text-white">
+        <button
+          onClick={handlePreviousPage}
+          disabled={currentPage === 1}
+          className={`px-4 py-2 border rounded-md mx-2 ${
+            currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          Previous
+        </button>
+        <span className="mx-2">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={handleNextPage}
+          disabled={currentPage === totalPages}
+          className={`px-4 py-2 border rounded-md mx-2 ${
+            currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };

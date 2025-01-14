@@ -22,14 +22,10 @@ const SearchCard = (props) => {
           <h3 title={props.name} className="text-white font-bold line-clamp-1">{props.name}</h3>
           <h3 className="text-white">Author</h3>
 
-          <div className="flex justify-between mt-4">
+          <div className="flex justify-end mt-4">
             <div>
               <h3 className="text-white text-sm">Price</h3>
               <h3 className="text-white">{props.price} ETH</h3>
-            </div>
-            <div>
-              <h3 className="text-white text-sm">Highest Bid</h3>
-              <h3 className="text-white">7.01 ETH</h3>
             </div>
           </div>
         </div>

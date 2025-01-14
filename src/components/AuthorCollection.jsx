@@ -47,7 +47,7 @@ const NFTCard = ({ tokenId, image, name, timeLeft, price }) => {
               <b className="">{price} ETH</b>
             </p>
           </div>
-          <div className="text-sm text-gray-500">{timeLeft} left</div>
+          {/* <div className="text-sm text-gray-500">{timeLeft} left</div> */}
         </div>
       </div>
     </div>

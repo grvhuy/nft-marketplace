@@ -121,7 +121,7 @@ export const NFTMarketplaceProvider = ({ children }) => {
       if (accounts.length > 0) {
         const account = accounts[0];
 
-        const ipfsHash = await getUserIPFSHash(account);
+        // const ipfsHash = await getUserIPFSHash(account);
 
         // if (!ipfsHash) {
         //   alert("No IPFS hash found for this account. Please create one.");
@@ -325,11 +325,11 @@ export const NFTMarketplaceProvider = ({ children }) => {
           ? "NFT resold successfully!"
           : "NFT created successfully!";
 
-        alert(successMessage);
+        // alert(successMessage);
 
         // Navigate based on creation or reselling
         if (!isReselling) {
-          router.push("/search");
+          router.push("/browse");
         } else {
           router.refresh();
         }
@@ -716,7 +716,7 @@ export const NFTMarketplaceProvider = ({ children }) => {
       const receipt = await transaction.wait();
 
       if (receipt.status === 1) {
-        alert("IPFS Hash updated successfully!");
+        // alert("IPFS Hash updated successfully!");
       } else {
         alert("Failed to update IPFS hash.");
       }

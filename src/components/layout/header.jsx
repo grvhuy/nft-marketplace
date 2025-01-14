@@ -58,7 +58,7 @@ const Header = () => {
         <div className={`lg:block ${isMenuOpen ? 'block' : 'hidden'} flex-1 lg:flex-none`}>
           <ul className="lg:flex gap-x-5 max-lg:space-y-3 max-lg:fixed max-lg:bg-white max-lg:w-1/2 max-lg:min-w-[300px] max-lg:top-0 max-lg:left-0 max-lg:p-6 max-lg:h-full max-lg:shadow-md max-lg:overflow-auto z-50">
             <li className="max-lg:border-b border-gray-300 max-lg:py-3 px-3">
-              <a href="/search" className="hover:text-[#007bff] text-gray-500 block font-semibold text-[15px]">
+              <a href="/browse" className="hover:text-[#007bff] text-gray-500 block font-semibold text-[15px]">
                 Browse
               </a>
             </li>
@@ -79,7 +79,7 @@ const Header = () => {
                 Explorer
               </a>
             </li>
-            <li className="max-lg:border-b border-gray-300 max-lg:py-3 px-3">
+            {/* <li className="max-lg:border-b border-gray-300 max-lg:py-3 px-3">
               <a href="/collections" className="hover:text-[#007bff] text-gray-500 block font-semibold text-[15px]">
                 Authors
               </a>
@@ -88,7 +88,7 @@ const Header = () => {
               <a href={`/account/${currentAccount}` || "/account"} className="hover:text-[#007bff] text-gray-500 block font-semibold text-[15px]">
                 Account
               </a>
-            </li>
+            </li> */}
           </ul>
         </div>
 
@@ -170,7 +170,7 @@ const Header = () => {
                   </p>
                 </div>
                 
-                <ScrollArea className="max-h-72">
+                <ScrollArea className="h-80">
                   {cart_items.length === 0 ? (
                     <p className="text-center py-4">No item in cart</p>
                   ) : (

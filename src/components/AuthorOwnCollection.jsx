@@ -36,15 +36,15 @@ const NFTCard = ({ tokenId, image, name, timeLeft, price }) => {
       <div className="mt-4">
         <h3 className="text-lg font-semibold mt-2">{name}</h3>
         <div className="flex justify-between items-center mt-2">
-          <div className="mt-4 w-1/2">
-            <p className="text-lg border-[1.5px] border-gray-400 p-2 relative items-center justify-center flex">
-              <span className="bg-[#ac8be0] text-white p-1 rounded-sm block text-sm absolute -top-5">
-                Current Bid
+          <div className="mt-4 ">
+            <p className="text-lg p-2 relative items-center justify-end flex space-x-2">
+              <span className="bg-[#ac8be0] text-white p-1 rounded-sm block text-sm">
+                Price
               </span>
               <b className="">{price} ETH</b>
             </p>
           </div>
-          <div className="text-sm text-gray-500">{timeLeft} left</div>
+          {/* <div className="text-sm text-gray-500">{timeLeft} left</div> */}
         </div>
       </div>
     </div>
