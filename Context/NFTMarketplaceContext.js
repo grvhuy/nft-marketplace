@@ -234,8 +234,7 @@ export const NFTMarketplaceProvider = ({ children }) => {
         headers: {
           "Content-Type": "application/json",
           pinata_api_key: "87b515e0af1c6568fc71",
-          pinata_secret_api_key:
-            "125429af9899ca059f171c7007afdefacc2c6f8da5ee8218979028dcec192e48",
+          pinata_secret_api_key: process.env.NEXT_PUBLIC_PINATA_SECRET_KEY
         },
       });
 

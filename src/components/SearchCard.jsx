@@ -20,7 +20,7 @@ const SearchCard = (props) => {
         />
         <div className="bg-[#3b3b3b] px-4 py-2 text-lg rounded-2xl">
           <h3 title={props.name} className="text-white font-bold line-clamp-1">{props.name}</h3>
-          <h3 className="text-white">Author</h3>
+          {/* <h3 className="text-white">Author</h3> */}
 
           <div className="flex justify-end mt-4">
             <div>
